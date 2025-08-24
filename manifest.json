@@ -1,7 +1,7 @@
 {
   "name": "Avanti Teams Management",
   "short_name": "Avanti Teams",
-  "start_url": "project.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#008080",
