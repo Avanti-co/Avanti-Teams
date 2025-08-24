@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+ <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+<title>Send Newsletter • Avanti</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<style>
+  :root{
+    --bg:#F4F7FB;
+    --ink:#0F2A45;
+    --muted:#6B7C93;
+    --brand:#4A73A6;
+    --brand-ink:#1E3E63;
+    --line:#E5ECF6;
+    --chip:#EDF3FB;
+    --warning:#D77;
+    --success:#2E7D32;
+  }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);
+padding-top: 87px; padding-bottom: 100px;
+}
+  header{
+    position:sticky;top:85px;z-index:10;background:#fff;border-bottom:1px solid var(--line);
+    padding:14px 18px;display:flex;gap:18px;align-items:center;justify-content:space-between
+  }
+  .title{font-weight:700;letter-spacing:.2px}
+  main{display:grid;grid-template-columns:380px 1fr;gap:18px;padding:18px}
+  @media (max-width:1050px){main{grid-template-columns:1fr}}
+  .panel{
+    background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:240px
+  }
+  .panel h3{margin:0;padding:12px 14px;border-bottom:1px solid var(--line);font-size:15px}
+  .panel .body{padding:12px;overflow:auto}
+  .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+  .filters label{font-size:12px;color:var(--muted)}
+  .filters select,.filters input{
+    padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;min-width:140px
+  }
+  .filters .range{display:flex;gap:6px;align-items:center}
+  .bar{display:flex;gap:10px;align-items:center}
+  .tree{margin:0;padding:0;list-style:none}
+  .node{border:1px solid var(--line);border-radius:10px;margin-bottom:10px}
+  .node > .node-head{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FAFCFF;cursor:pointer
+  }
+  .node > .node-head:hover{background:#F5F9FF}
+  .node .meta{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .chip{padding:3px 8px;border-radius:999px;background:var(--chip);font-size:11px;color:var(--brand-ink)}
+  .node .node-body{padding:10px 12px;border-top:1px dashed var(--line);display:none}
+  .node.open > .node-body{display:block}
+  .row{display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:8px}
+  .row:hover{background:#FBFDFF}
+  .row .email{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .row.unsub{color:#9aa9bd}
+  .row .tag{margin-left:auto;font-size:11px;color:#8797AD}
+  .search{display:flex;gap:8px;margin-bottom:10px}
+  .search input{flex:1;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+  .small{font-size:12px;color:var(--muted)}
+  .actions{display:flex;gap:10px;align-items:center;margin-top:8px}
+  button{
+    appearance:none;border:none;border-radius:10px;padding:10px 14px;background:var(--brand);color:#fff;cursor:pointer;font-weight:600
+  }
+  button.secondary{background:#fff;color:var(--brand-ink);border:1px solid var(--line)}
+  button.ghost{background:transparent;color:var(--brand-ink)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .pill{background:#EDF3FB;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
+  .flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .right{margin-left:auto}
+  .preview{
+    min-height:220px;border:1px dashed var(--line);border-radius:12px;overflow:hidden;background:#fff
+  }
+  .statusbar{display:flex;gap:10px;align-items:center;margin-top:10px}
+  progress{width:260px;height:12px}
+  .log{margin-top:10px;font-family:ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:160px;overflow:auto}
+  .tri{width:16px;height:16px;display:inline-grid;place-items:center;border:1px solid var(--line);border-radius:4px;background:#fff}
+  .ghost-label{color:#98a7bd}
+</style>
+</head>
+
+<body>
+<div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+  <header>
+    <div class="bar">
+      <div class="title">Avanti • Send Newsletter</div>
+      <span class="small">Preview below is from your edited template (saved via <code>?key=</code>)</span>
+    </div>
+    <div class="bar">
+      <span id="selectedCount" class="pill">Selected: 0</span>
+      <span id="hiddenCount" class="pill" style="display:none"></span>
+      <button id="btnSend">Send Newsletter</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: recipients + filters -->
+    <section class="panel" style="min-height:70vh">
+      <h3>Recipients & Filters</h3>
+      <div class="body" id="leftBody">
+
+        <div class="filters">
+          <div>
+            <label for="fFor">For</label><br/>
+            <select id="fFor">
+              <option value="">Any</option>
+              <option>Company</option>
+              <option>Individual</option>
+            </select>
+          </div>
+          <div>
+            <label>
+              Select All Visible
+            </label>
+            <input type="checkbox" id="cbSelectVisible">
+          </div>
+          <button id="btnClearFilters" class="ghost">Clear</button>
+        </div>
+
+        <div class="flex" style="margin-top:12px">
+          <span class="small">Folders</span>
+          <div class="right search">
+            <input id="qFolders" placeholder="Search folders / emails…" />
+          </div>
+        </div>
+        <ul id="treeFolders" class="tree"></ul>
+
+      </div>
+    </section>
+
+    <!-- RIGHT: template preview + send status -->
+    <section class="panel">
+      <h3>Template Preview</h3>
+      <div class="body">
+        <div class="preview">
+          <iframe id="preview" style="border:0;width:100%;height:420px"></iframe>
+        </div>
+        <div class="statusbar">
+          <progress id="prog" value="0" max="100"></progress>
+          <span id="statusText" class="small">Idle</span>
+        </div>
+        <div class="actions">
+          <button id="btnExport" class="secondary">Export selected CSV</button>
+          <button id="btnClearHidden" class="ghost" style="display:none">Clear hidden</button>
+        </div>
+        <div id="log" class="log" hidden></div>
+      </div>
+    </section>
+  </main>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+<script type="module">
+/* ------------------------- Firebase Config ------------------------- */
+const firebaseConfig = { apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+  authDomain: "users-66be4.firebaseapp.com",
+  databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+  projectId: "users-66be4",
+  storageBucket: "users-66be4.appspot.com",
+  messagingSenderId: "776585122050",
+  appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"};
+const EMAILJS_PUBLIC_KEY = "VdZnwQXzlvXUMvOpB";   
+const EMAILJS_SERVICE_ID = "service_yekq70e";   
+const EMAILJS_TEMPLATE_ID = "template_8in927p"; 
+
+/* ------------------------- State ------------------------- */
+const state = {
+  folders: {},   // folderId -> data
+  search: { folders:"" },
+  filters: { For:"" },
+  selected: new Set(),
+  selectedMeta: new Map(),
+  currentlyVisibleEmails: new Set(),
+};
+
+const el = {
+  treeFolders: document.getElementById("treeFolders"),
+  qFolders   : document.getElementById("qFolders"),
+  fFor       : document.getElementById("fFor"),
+  cbSelectVisible: document.getElementById("cbSelectVisible"),
+  btnClearFilters: document.getElementById("btnClearFilters"),
+  btnSend    : document.getElementById("btnSend"),
+  btnExport  : document.getElementById("btnExport"),
+  btnClearHidden: document.getElementById("btnClearHidden"),
+  selectedCount: document.getElementById("selectedCount"),
+  hiddenCount : document.getElementById("hiddenCount"),
+  preview    : document.getElementById("preview"),
+  prog       : document.getElementById("prog"),
+  statusText : document.getElementById("statusText"),
+  log        : document.getElementById("log"),
+};
+
+/* ------------------------- Utils ------------------------- */
+const debounce=(fn,ms=250)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+const norm=s=>(s||"").toString().toLowerCase();
+
+function setPreviewFromLocalStorage(){
+  const url = new URL(location.href);
+  const key = url.searchParams.get("key");
+  const html = key ? localStorage.getItem(key) : "";
+  const doc = html || "<p style='padding:20px;color:#6B7C93'>No template found. Go back and click <b>Done</b> to save your edited template.</p>";
+  el.preview.srcdoc = doc;
+}
+
+
+/* ------------------------- Firebase Init ------------------------- */
+import("https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js")
+.then(()=>import("https://www.gstatic.com/firebasejs/10.12.4/firebase-database-compat.js"))
+.then(()=>{
+  const app=firebase.initializeApp(firebaseConfig);
+  const db=firebase.database();
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+  db.ref("folders").get().then(snap=>{
+    state.folders = snap.exists()? snap.val() : {};
+    wireUI(); renderAll();
+  });
+});
+
+/* ------------------------- UI ------------------------- */
+function wireUI(){
+setPreviewFromLocalStorage();
+  el.qFolders.addEventListener("input",debounce(e=>{
+    state.search.folders=e.target.value.trim();
+    renderAll();
+  }));
+  el.fFor.addEventListener("change",()=>{
+    state.filters.For=el.fFor.value;
+    renderAll();
+  });
+  el.btnClearFilters.addEventListener("click",()=>{
+    el.fFor.value=""; state.filters.For=""; renderAll();
+  });
+  el.cbSelectVisible.addEventListener("change",()=>{
+    if(el.cbSelectVisible.checked){
+      for(const email of state.currentlyVisibleEmails) state.selected.add(email);
+    } else {
+      for(const email of state.currentlyVisibleEmails){state.selected.delete(email);state.selectedMeta.delete(email);}
+    }
+    syncSelectionChips(); renderAll();
+  });
+  el.btnExport.addEventListener("click",exportCSV);
+  el.btnSend.addEventListener("click",onSend);
+}
+
+/* ------------------------- Render ------------------------- */
+function passFilters(f){
+  if(state.filters.For && (f.For||"")!==state.filters.For) return false;
+  return true;
+}
+
+function renderAll(){
+  state.currentlyVisibleEmails.clear();
+  el.treeFolders.innerHTML="";
+  const q=norm(state.search.folders);
+  const entries=Object.entries(state.folders||{});
+  for(const [fid,f] of entries){
+    if(!passFilters(f)) continue;
+    const emails=(f.Emails||[]).map(String);
+const projectCount = f.projects ? Object.keys(f.projects).length : 0;
+    const hay=norm(fid+" "+emails.join(" "));
+    if(q && !hay.includes(q)) continue;
+    const node=makeNode({
+      title: fid,
+      subtitle: `For: ${f.For||""}`,
+      meta:[chip(`${emails.length} emails`), chip(`${projectCount} projects`)],
+    });
+    node.body.appendChild(allRow(node,emails));
+    for(const email of emails){
+      const row=emailRow(email);
+      state.currentlyVisibleEmails.add(email);
+      node.body.appendChild(row);
+    }
+    el.treeFolders.appendChild(node.root);
+  }
+  if(!el.treeFolders.children.length){
+    el.treeFolders.innerHTML=`<li class="small ghost-label">No folders match your search.</li>`;
+  }
+  syncSelectionChips();
+}
+
+function makeNode({title,subtitle="",meta=[]}){
+  const root=document.createElement("li");
+  root.className="node";
+  const head=document.createElement("div");
+  head.className="node-head";
+  head.innerHTML=`
+    <div class="tri">▸</div>
+    <div><div style="font-weight:600">${title}</div>${subtitle?`<div class="small">${subtitle}</div>`:""}</div>
+    <div class="meta">${meta.join("")}</div>`;
+  const body=document.createElement("div");body.className="node-body";
+  head.addEventListener("click",()=>{root.classList.toggle("open");head.querySelector(".tri").textContent=root.classList.contains("open")?"▾":"▸"});
+  root.append(head,body); return {root,body};
+}
+
+function allRow(node,emails){
+  const c=document.createElement("div");c.className="row";
+  const id="all-"+Math.random().toString(36).slice(2);
+  c.innerHTML=`<input type="checkbox" id="${id}"><label for="${id}" style="font-weight:600">All</label><span class="small">(${emails.length})</span>`;
+  const cb=c.querySelector("input");
+  cb.addEventListener("change",()=>{
+    if(cb.checked){for(const e of emails)state.selected.add(e);}else{for(const e of emails)state.selected.delete(e);}
+    syncSelectionChips();renderAll();
+  });return c;
+}
+
+function emailRow(email){
+  const row=document.createElement("div");row.className="row";
+  const id="cb-"+Math.random().toString(36).slice(2);
+  row.innerHTML=`<input type="checkbox" id="${id}"><label for="${id}" class="email">${email}</label>`;
+  const cb=row.querySelector("input");cb.checked=state.selected.has(email);
+  cb.addEventListener("change",()=>{if(cb.checked)state.selected.add(email);else state.selected.delete(email);syncSelectionChips();});
+  return row;
+}
+
+function syncSelectionChips(){
+  const total=state.selected.size;
+  el.selectedCount.textContent=`Selected: ${total}`;
+}
+
+/* ------------------------- Export + Send ------------------------- */
+function exportCSV(){
+  if(!state.selected.size) return alert("No recipients selected.");
+  const lines=["email"];
+  for(const e of state.selected) lines.push(`"${e}"`);
+  const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="selected_emails.csv";a.click();
+}
+
+async function onSend(){
+  const emails=[...state.selected];
+  if(!emails.length) return alert("Select at least one recipient.");
+  if(emails.length>25) return alert("Max 25 recipients.");
+  const paramsBase={subject:"Avanti Newsletter",preview_text:"Latest update from Avanti",message_html:el.preview.srcdoc||""};
+  let ok=0,fail=0,i=0;
+  for(const email of emails){
+    i++;
+    try{await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{...paramsBase,to_email:email});ok++;}
+    catch{fail++;}
+    el.prog.value=Math.round((i/emails.length)*100);
+    el.statusText.textContent=`Progress: ${i}/${emails.length} • OK ${ok} • Fail ${fail}`;
+    await new Promise(r=>setTimeout(r,150));
+  }
+}
+function chip(t){return `<span class="chip">${t}</span>`;}
+</script>
+
+<script>
+function createFolderEmailsButton() {
+  const params = new URLSearchParams(location.search);
+  const key = params.get("key") || "";
+
+  // Only add button if it doesn't exist
+  if (!document.getElementById("folderEmailsBtn")) {
+    const button = document.createElement("button");
+    button.id = "folderEmailsBtn";
+    button.textContent = "File Emails";
+
+    // Apply styles directly
+    Object.assign(button.style, {
+      position: "fixed",
+      top: "25px",
+      right: "110px",
+      backgroundColor: "#3f72af",
+      color: "#fff",
+      padding: "10px 20px",
+      border: "none",
+      borderRadius: "5px",
+      cursor: "pointer",
+      zIndex: "9999"
+    });
+
+    button.addEventListener("click", () => {
+      window.location.href = `send-email.html?key=${key}`;
+    });
+
+    document.body.appendChild(button);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  createFolderEmailsButton();
+});
+</script>
+</body>
+</html>

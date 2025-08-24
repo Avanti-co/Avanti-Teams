@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Payments — Project Lodgement Due to Arrears</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+</head>
+<body style="margin:0; padding:0; background:#F4F7FB; font-family:Arial, Helvetica, sans-serif;">
+
+  <!-- Done button -->
+  <button id="doneBtn" 
+    style="position:fixed; top:20px; right:20px; background:#0F2A45; color:#fff; border:none; 
+           padding:10px 16px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer; z-index:1000;">
+    Done
+  </button>
+
+  <!-- Main Wrapper -->
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F4F7FB;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+
+        <!-- Container -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%; max-width:600px;">
+          
+          <!-- Card -->
+          <tr>
+            <td style="background:#ffffff; padding:32px 28px; border-radius:8px; font-family:Arial, Helvetica, sans-serif;">
+
+              <!-- Brand -->
+              <div style="display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:0.6px; font-family:Arial, Helvetica, sans-serif;">
+                <div style="transition: transform 5s; transform: rotate(0deg);" 
+                     onmouseover="this.style.transform='rotate(360deg)'" 
+                     onmouseout="this.style.transform='rotate(0deg)'">
+                  <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293"
+                       alt="Avanti Logo"
+                       style="width:48px; height:48px; border-radius:17px; background:linear-gradient(135deg,#fff,rgba(255,255,255,0.85)); box-shadow:0 6px 18px rgba(2,6,23,0.5);">
+                </div>
+                <div>
+                  <div style="font-size:18px; font-family:Arial, Helvetica, sans-serif;">
+                    <a class="editable-link" 
+                       style="margin:0; font-size:25px; line-height:28px; color:#3f72af; text-decoration:none; font-family:Arial, Helvetica, sans-serif;">
+                      Avanti
+                    </a>
+                  </div>
+                  <div style="font-size:13px; color:#233045; font-weight:600; font-family:Arial, Helvetica, sans-serif;">Design • Develop • Evolve</div>
+                </div>
+              </div>
+
+              <br><br>
+
+              <!-- Title -->
+              <h1 contenteditable="true" 
+                  style="margin:0 0 12px 0; font-size:22px; line-height:28px; color:#233045; font-family:Arial, Helvetica, sans-serif;">
+                Payments — Project Lodgement Due to Arrears
+              </h1>
+
+              <!-- Subtitle -->
+              <p contenteditable="true" 
+                 style="margin:0 0 18px; font-size:14px; line-height:22px; color:#6B7C93; font-family:Arial, Helvetica, sans-serif;">
+                Notice: project has been lodged due to payment arrears.
+              </p>
+
+              <!-- Body -->
+              <p contenteditable="true" 
+                 style="margin:0 0 14px; font-size:14px; line-height:22px; color:#233045; font-family:Arial, Helvetica, sans-serif;">
+                Your project has been temporarily lodged/suspended following unpaid invoices.
+              </p>
+
+              <!-- Dynamic List -->
+              <ul style="padding-left:18px; margin:0 0 14px; font-size:14px; line-height:22px; color:#233045; font-family:Arial, Helvetica, sans-serif;">
+                <li contenteditable="true" style="margin-bottom:8px;">Outstanding invoices: <strong>{{invoice_list}}</strong></li>
+                <li contenteditable="true" style="margin-bottom:8px;">Total due: <strong>{{total_due}}</strong></li>
+                <li contenteditable="true" style="margin-bottom:8px;">Reactivation steps: settle dues or contact billing</li>
+                <li contenteditable="true" style="margin-bottom:8px;">Impact: paused timelines &amp; access limited</li>
+              </ul>
+
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+                <tr>
+                  <td align="center" bgcolor="#0F2A45" style="border-radius:6px;">
+                    <a href="https://example.com" 
+                       class="editable-link" 
+                       style="display:inline-block; padding:12px 18px; font-size:14px; color:#ffffff; text-decoration:none; font-weight:bold; font-family:Arial, Helvetica, sans-serif;">
+                      View Details
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <hr style="border:none; border-top:1px solid #E5ECF6; margin:28px 0;">
+
+              <!-- Footer -->
+              <p contenteditable="true" 
+                 style="margin:0; font-size:12px; line-height:18px; color:#6B7C93; font-family:Arial, Helvetica, sans-serif;">
+                AVANTI • Design, Develop, Evolve<br>
+                You’re receiving this because you’re an Avanti client or partner. 
+                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline; font-family:Arial, Helvetica, sans-serif;">Manage preferences</a> · 
+                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline; font-family:Arial, Helvetica, sans-serif;">Unsubscribe</a>
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Legal -->
+          <tr>
+            <td align="center" style="padding:14px 10px; color:#6B7C93; font-size:11px; font-family:Arial, Helvetica, sans-serif;">
+              © 2025 Avanti. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+  <script>
+    // Make images editable
+    document.querySelectorAll("img").forEach(img => {
+      img.classList.add("editable-image");
+      img.addEventListener("click", () => {
+        const newUrl = prompt("Enter the image URL:", img.src);
+        if (newUrl) img.src = newUrl;
+      });
+    });
+
+    // Make links editable
+    document.querySelectorAll("a.editable-link").forEach(a => {
+      a.setAttribute("contenteditable", "true");
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const newHref = prompt("Enter the link URL:", a.href || "#");
+        if (newHref) a.href = newHref;
+      });
+    });
+
+    // Save to localStorage on Done
+    document.getElementById("doneBtn").addEventListener("click", () => {
+      const htmlContent = document.body.innerHTML;
+      const key = "template_" + Date.now();
+      localStorage.setItem(key, htmlContent);
+      window.location.href = "send-email.html?key=" + key;
+    });
+  </script>
+
+</body>
+</html>

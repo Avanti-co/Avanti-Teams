@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Commits & Analytics — Avanti</title>
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+ <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <!-- Avanti Light Theme -->
+  <style>
+    :root{
+      --av-primary:#0A84FF;   /* Avanti blue */
+      --av-secondary:#6C5CE7; /* Avanti purple */
+      --av-accent:#00C2A8;    /* Avanti teal */
+      --av-warn:#F59E0B;      /* amber */
+      --av-danger:#EF4444;    /* red */
+      --av-ok:#10B981;        /* green */
+      --av-bg:#F7F9FC;
+      --av-card:#FFFFFF;
+      --av-muted:#6B7280;
+      --av-text:#1F2937;
+      --radius:14px;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --shadow-soft:0 6px 16px rgba(0,0,0,.06);
+      --ring:0 0 0 3px rgba(10,132,255,.15);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--av-bg);color:var(--av-text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;}
+    a{color:var(--av-primary);text-decoration:none}
+    .container{max-width:1200px;margin:auto;padding:24px}
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    /* Plus button container */
+    .plus-container {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .plus-btn {
+      width: 80px;
+      height: 80px;
+      background: #007bff; /* 🔵 Blue button */
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 28px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 200;
+      transition: transform 0.3s ease;
+    }
+
+    /* Options above */
+    .options {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      pointer-events: none;
+    }
+
+    .option {
+      width: 85px;
+      height: 85px;
+      background: #444;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      opacity: 0;
+      transform: translateY(40px) scale(0.5) rotate(0deg);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+margin-bottom: 25px;
+    }
+
+    .plus-container.active .option {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1) rotate(360deg);
+    }
+
+    /* File */
+    .plus-container.active .option:nth-child(1) {
+      transition-delay: 0.05s;
+    }
+
+    /* Folder */
+    .plus-container.active .option:nth-child(2) {
+      transition-delay: 0.1s;
+    }
+
+
+    header{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:100px 0 22px 20px;border-radius:18px;background:linear-gradient(180deg,#fff, #fafcff);
+      box-shadow:var(--shadow);
+      position:sticky;top:10px;z-index:9
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand .logo{
+      width:40px;height:40px;border-radius:12px;
+      background:conic-gradient(from 220deg at 50% 50%, var(--av-primary), var(--av-secondary), var(--av-accent), var(--av-primary));
+      box-shadow:inset 0 0 0 4px #fff, var(--shadow-soft)
+    }
+    .brand h1{font-size:18px;margin:0}
+    .filters{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{
+      background:#fff;border:1px solid #e9eef5;color:#111;border-radius:999px;padding:8px 12px;font-size:13px;
+      display:inline-flex;gap:8px;align-items:center;box-shadow:var(--shadow-soft)
+    }
+    input[type="search"]{
+      padding:10px 12px;border-radius:12px;border:1px solid #e6edf5;background:#fff;min-width:240px;box-shadow:var(--shadow-soft)
+    }
+    input[type="search"]:focus{outline:none;box-shadow:var(--ring)}
+    .tabs{display:flex;gap:8px;margin:18px 0}
+    .tab{
+      padding:10px 14px;border-radius:12px;background:#fff;border:1px solid #e9eef5;cursor:pointer;user-select:none;
+      box-shadow:var(--shadow-soft);font-weight:600;font-size:14px
+    }
+    .tab.active{background:linear-gradient(180deg,#fff,#f6f9ff);border-color:#dbe7ff;color:#0b5cff}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .span-8{grid-column:span 8}
+    .span-4{grid-column:span 4}
+    .span-6{grid-column:span 6}
+    .span-12{grid-column:span 12}
+    @media (max-width:1000px){.span-8,.span-6,.span-4{grid-column:span 12}}
+    .card{
+      background:var(--av-card);border-radius:var(--radius);box-shadow:var(--shadow);
+      padding:18px
+    }
+    .card h3{margin:0 0 10px 0}
+    .commit-card{
+      display:grid;grid-template-columns: 1fr;gap:10px;border:1px solid #eef2f7;padding:16px;border-radius:14px
+    }
+    .commit-meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--av-muted);font-size:12px}
+    .pill{padding:3px 8px;border-radius:999px;background:#f2f7ff;border:1px solid #deebff;color:#0b5cff;font-weight:600}
+    .pill.warn{background:#fff7ed;border-color:#ffedd5;color:#9a3412}
+    .pill.ok{background:#ecfdf5;border-color:#d1fae5;color:#065f46}
+    .pill.danger{background:#fef2f2;border-color:#fee2e2;color:#991b1b}
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:8px;font-size:14px}
+    .codeish{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;background:#fafbff;border:1px solid #eef2f7;border-radius:10px;padding:8px;overflow:auto}
+    .section-title{font-size:13px;color:var(--av-muted);text-transform:uppercase;letter-spacing:.08em;margin:6px 0}
+    /* Timeline / Tree */
+    .tree{position:relative;margin:0;padding-left:24px}
+    .tree:before{content:"";position:absolute;left:10px;top:6px;bottom:6px;width:2px;background:linear-gradient(#dde7ff,#e8eefc)}
+    .tree-item{position:relative;margin:8px 0;padding-left:14px}
+    .tree-item:before{
+      content:"";position:absolute;left:-6px;top:10px;width:14px;height:2px;background:#dde7ff
+    }
+    .muted{color:var(--av-muted)}
+    /* Tables */
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left}
+    th{font-size:12px;text-transform:uppercase;color:var(--av-muted);letter-spacing:.06em}
+    /* Footer note */
+    .note{font-size:12px;color:var(--av-muted)}
+  </style>
+
+  <!-- Firebase (Compat for quick drop-in) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+  <div class="container">
+    <header >
+      <div class="brand">
+     
+        <div>
+          <h1 id="pageTitle">Project Commits</h1>
+          <div class="muted" id="sourceHint">Detecting source…</div>
+        </div>
+      </div>
+      <div class="filters">
+        <input id="searchBox" type="search" placeholder="Search commits (id, change, reason…)" />
+        <div class="chip" id="totalCommitsChip" title="Total commits">Commits: <b id="totalCommits">0</b></div>
+        <div class="chip" title="Total extension days">Ext Days: <b id="totalExtDays">0</b></div>
+        <div class="chip" title="Planned → Current due date">
+          Due: <b id="dueDateLabel">—</b>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="commits">Commits</div>
+      <div class="tab" data-tab="analytics">Analytics & Reports</div>
+      <div class="tab" data-tab="overview">Project Overview</div>
+    </div>
+
+    <!-- COMMITS TAB -->
+    <section id="tab-commits" class="grid">
+      <div class="span-8 card">
+        <h3>All Commits</h3>
+        <div id="commitsList" class="grid" style="grid-template-columns:repeat(12,1fr);gap:14px;"></div>
+      </div>
+      <aside class="span-4 card">
+        <h3>Timeline / Tree</h3>
+        <div id="timelineTree" class="tree"></div>
+        <div class="note" style="margin-top:10px">
+          Commits are rendered schema-agnostically. Arrays like <code>changes</code> and <code>extensions</code> are displayed if present; missing fields are gracefully skipped.
+        </div>
+      </aside>
+    </section>
+
+    <!-- ANALYTICS TAB -->
+    <section id="tab-analytics" class="grid" style="display:none">
+      <div class="span-6 card">
+        <h3>Commits Over Time</h3>
+        <canvas id="chartCommitsByDay" height="220" aria-label="Commits over time"></canvas>
+      </div>
+      <div class="span-6 card">
+        <h3>Extension Days (Cumulative)</h3>
+        <canvas id="chartExtensionDays" height="220" aria-label="Extensions cumulative"></canvas>
+      </div>
+      <div class="span-6 card">
+        <h3>Change Types Distribution</h3>
+        <canvas id="chartChangeTypes" height="220" aria-label="Change types distribution"></canvas>
+      </div>
+      <div class="span-6 card">
+        <h3>Key Ratios & Comparisons</h3>
+        <table>
+          <tbody id="ratiosTable">
+            <!-- filled dynamically -->
+          </tbody>
+        </table>
+        <div class="note">Extensions are treated as days added to the plan.</div>
+      </div>
+    </section>
+
+    <!-- OVERVIEW TAB -->
+    <section id="tab-overview" class="grid" style="display:none">
+      <div class="span-8 card">
+        <h3>Project Details</h3>
+        <div id="projectKV" class="kv"></div>
+      </div>
+      <div class="span-4 card">
+        <h3>Disclaimers</h3>
+        <ul style="margin:8px 0 0 18px">
+          <li>This page reads live data from Firebase and renders fields as-is.</li>
+          <li>Calculated due date = <em>startDate</em> + <em>duration</em> + Σ(<em>extension.amount</em>).</li>
+          <li>If some fields are absent (e.g., budget), those analytics are omitted.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+   
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+<script>
+/* ========================== CONFIG ========================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+  authDomain: "users-66be4.firebaseapp.com",
+  databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+  projectId: "users-66be4",
+  storageBucket: "users-66be4.appspot.com",
+  messagingSenderId: "776585122050",
+  appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+};
+
+/* ========================== BOOT =========================== */
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const $ = (sel) => document.querySelector(sel);
+const $el = (tag, attrs={}, children=[])=>{
+  const n = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class') n.className=v;
+    else if(k==='html') n.innerHTML=v;
+    else n.setAttribute(k,v);
+  });
+  children.forEach(c=> n.appendChild(c));
+  return n;
+};
+
+const state = {
+  srcKind:null, // 'project_files' | 'folders'
+  projectPath:null,
+  project:null,
+  commits:[],           // array of {id, ...commitData}
+  totals:{extensionsDays:0},
+  charts:{},
+};
+
+function parseQuery(){
+  const p = new URLSearchParams(location.search);
+  const name = p.get('name');
+  const folderId = p.get('folderId');
+  const projectId = p.get('projectId');
+  return {name, folderId, projectId};
+}
+
+function resolveProjectPath(){
+  const {name, folderId, projectId} = parseQuery();
+  if(name){
+    state.srcKind = 'project_files';
+    state.projectPath = `project_files/${decodeURIComponent(name)}`;
+    $('#sourceHint').textContent = `Source: ${state.projectPath}`;
+    $('#pageTitle').textContent = `Commits — ${decodeURIComponent(name)}`;
+  }else if(folderId && projectId){
+    state.srcKind = 'folders';
+    state.projectPath = `folders/${folderId}/projects/${projectId}`;
+    $('#sourceHint').textContent = `Source: ${state.projectPath}`;
+    $('#pageTitle').textContent = `Commits — Project ${projectId}`;
+  }else{
+    $('#sourceHint').textContent = '⚠️ Missing query. Use ?name=ProjectName OR ?folderId=...&projectId=...';
+    throw new Error('Missing query params');
+  }
+}
+
+async function loadProject(){
+  const snap = await db.ref(state.projectPath).get();
+  state.project = snap.val() || {};
+}
+
+async function loadCommits(){
+  const snap = await db.ref(`${state.projectPath}/Commits`).get();
+  const obj = snap.val() || {};
+  // normalize to array with id
+  state.commits = Object.entries(obj).map(([id, val])=>({id, ...val}));
+  // sort by timestamp if present
+  state.commits.sort((a,b)=>{
+    const ta = Date.parse(a.timestamp || a.time || 0) || 0;
+    const tb = Date.parse(b.timestamp || b.time || 0) || 0;
+    return tb - ta;
+  });
+}
+
+function humanDate(s){
+  const d = s ? new Date(s) : null;
+  if(!d || isNaN(d)) return '—';
+  return d.toLocaleString();
+}
+function daysToMs(days){ return Number(days||0)*86400000; }
+
+function sumExtensions(commits){
+  let sum = 0;
+  commits.forEach(c=>{
+    const ex = (c.extensions && Array.isArray(c.extensions)) ? c.extensions : (c.extensions ? Object.values(c.extensions) : []);
+    ex.forEach(e=>{ sum += Number(e?.amount || 0); });
+  });
+  return sum;
+}
+
+function parseDuration(str) {
+  if (!str) return 0;
+  const m = String(str).trim().toLowerCase().match(/^(\d+)\s*(day|days|week|weeks|month|months|year|years)?$/);
+  if (!m) return 0;
+
+  const num = parseInt(m[1], 10);
+  const unit = m[2] || "days";
+
+  switch (unit) {
+    case "day":
+    case "days":
+      return num;
+    case "week":
+    case "weeks":
+      return num * 7;
+    case "month":
+    case "months":
+      return num * 30; // approx
+    case "year":
+    case "years":
+      return num * 365;
+    default:
+      return num;
+  }
+}
+
+
+function computeDueDate(project) {
+  const raw = project.startDate || project.StartDate || project.start_time;
+  const start = normalizeToDate(raw);
+  const durationDays = parseDuration(project.duration || project.Duration);
+
+  if (!start) {
+    return { label: '—', value: null };
+  }
+
+  // 🔹 Sum extension days across all commits
+  let extDays = 0;
+  if (project.Commits) {
+    Object.values(project.Commits).forEach(commit => {
+      if (commit.extensions) {
+        const exs = Array.isArray(commit.extensions) ? commit.extensions : Object.values(commit.extensions);
+        exs.forEach(ext => {
+          const amt = Number(ext?.amount || 0);
+          if (!isNaN(amt)) {
+            extDays += amt;
+          }
+        });
+      }
+    });
+  }
+
+  const totalDays = durationDays + extDays;
+  const due = new Date(start.getTime() + daysToMs(totalDays));
+
+  return { label: !isNaN(due) ? due.toDateString() : '—', value: !isNaN(due) ? due : null };
+}
+
+
+// ---------------- helpers ----------------
+function daysToMs(days) {
+  return Number(days || 0) * 24 * 60 * 60 * 1000;
+}
+
+function normalizeToDate(v) {
+  if (!v && v !== 0) return null;
+
+  // Already a Date
+  if (v instanceof Date && !isNaN(v)) return v;
+
+  // Firestore Timestamp-like
+  if (typeof v === 'object' && v) {
+    if (typeof v.seconds === 'number') {
+      return new Date(v.seconds * 1000);
+    }
+    if (typeof v.toDate === 'function') {
+      return v.toDate();
+    }
+  }
+
+  // Number (ms or seconds)
+  if (typeof v === 'number' || /^\d+$/.test(v)) {
+    const num = Number(v);
+    const ms = num < 1e12 ? num * 1000 : num;
+    return new Date(ms);
+  }
+
+  // ISO / YYYY-MM-DD
+  if (!isNaN(Date.parse(v))) {
+    return new Date(v);
+  }
+
+  // DD/MM/YYYY or DD-MM-YYYY
+  const m = String(v).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) {
+    let d = parseInt(m[1], 10), mo = parseInt(m[2], 10) - 1, y = parseInt(m[3], 10);
+    if (y < 100) y += 2000;
+    return new Date(y, mo, d);
+  }
+
+  return null;
+}
+
+
+/* ------------------ RENDER: COMMITS ------------------ */
+function renderCommitCard(c){
+  const wrap = $el('div',{class:'span-12'});
+  const card = $el('div',{class:'commit-card'});
+  const header = $el('div',{class:'commit-meta'});
+  header.appendChild($el('span',{class:'pill'},[$el('span',{html:c.id})]));
+  header.appendChild($el('span',{class:'pill ok'},[$el('span',{html:`${(c.extensions? (Array.isArray(c.extensions)? c.extensions : Object.values(c.extensions)).reduce((s,e)=>s+Number(e?.amount||0),0) : 0)}d ext`})]));
+  header.appendChild($el('span',{class:'pill'},[$el('span',{html: humanDate(c.timestamp)})]));
+
+  // Changes (if any)
+  let changesBlock = null;
+  if(c.changes){
+    const changes = Array.isArray(c.changes) ? c.changes : Object.values(c.changes);
+    const list = $el('div');
+    changes.forEach((ch,idx)=>{
+      const pre = $el('pre',{class:'codeish', html: JSON.stringify(ch, null, 2)});
+      const t = $el('div',{class:'tree-item'},[
+        $el('div',{class:'section-title',html:`Change #${idx+1}`}),
+        pre
+      ]);
+      list.appendChild(t);
+    });
+    changesBlock = $el('div',{},[
+      $el('div',{class:'section-title',html:'Changes'}),
+      $el('div',{class:'tree'},[list])
+    ]);
+  }
+
+  // Extensions (if any)
+  let exBlock = null;
+  if(c.extensions){
+    const exs = Array.isArray(c.extensions) ? c.extensions : Object.values(c.extensions);
+    const exList = $el('div');
+    exs.forEach((ex,idx)=>{
+      const line = $el('div', {class:'tree-item'}, [
+        $el('div',{html:`+${Number(ex?.amount||0)} day(s) — <span class="muted">${ex?.reason||'No reason'}</span>`})
+      ]);
+      exList.appendChild(line);
+    });
+    exBlock = $el('div',{},[
+      $el('div',{class:'section-title',html:'Extensions'}),
+      $el('div',{class:'tree'},[exList])
+    ]);
+  }
+
+  // Generic key-values (schema-agnostic)
+  const kv = $el('div',{class:'kv'});
+  Object.entries(c).forEach(([k,v])=>{
+    if(['changes','extensions','id'].includes(k)) return;
+    kv.appendChild($el('div',{class:'muted',html:k}));
+    if(typeof v === 'object'){
+      kv.appendChild($el('pre',{class:'codeish', html: JSON.stringify(v,null,2)}));
+    }else{
+      kv.appendChild($el('div',{html:String(v)}));
+    }
+  });
+
+  card.appendChild(header);
+  if(changesBlock) card.appendChild(changesBlock);
+  if(exBlock) card.appendChild(exBlock);
+  card.appendChild($el('div',{class:'section-title',html:'Commit meta'}));
+  card.appendChild(kv);
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+function renderCommits(){
+  const list = $('#commitsList');
+  list.innerHTML = '';
+  const q = ($('#searchBox').value || '').toLowerCase().trim();
+
+  state.commits.forEach(c=>{
+    const blob = JSON.stringify(c).toLowerCase();
+    if(q && !blob.includes(q)) return;
+    list.appendChild(renderCommitCard(c));
+  });
+
+  // Timeline / Tree on side
+  const tree = $('#timelineTree');
+  tree.innerHTML = '';
+  state.commits.forEach((c,i)=>{
+    const node = $el('div',{class:'tree-item'});
+    const parts = [];
+    parts.push(`<b>${c.id}</b>`);
+    if(c.timestamp) parts.push(`<span class="muted">(${humanDate(c.timestamp)})</span>`);
+    const ext = c.extensions ? (Array.isArray(c.extensions)? c.extensions : Object.values(c.extensions)) : [];
+    if(ext.length){
+      const sum = ext.reduce((s,e)=>s+Number(e?.amount||0),0);
+      parts.push(`<span class="pill warn" style="margin-left:6px">+${sum}d</span>`);
+    }
+    node.innerHTML = parts.join(' ');
+    tree.appendChild(node);
+  });
+
+  // Head chips
+  $('#totalCommits').textContent = String(state.commits.length);
+  state.totals.extensionsDays = sumExtensions(state.commits);
+  $('#totalExtDays').textContent = String(state.totals.extensionsDays);
+
+  const due = computeDueDate(state.project);
+  $('#dueDateLabel').textContent = due.label;
+}
+
+/* ------------------ ANALYTICS ------------------ */
+function groupByDay(commits){
+  const map = {};
+  commits.forEach(c=>{
+    const t = c.timestamp && Date.parse(c.timestamp) ? new Date(c.timestamp) : null;
+    const key = t ? t.toISOString().slice(0,10) : 'Unknown';
+    map[key] = (map[key]||0)+1;
+  });
+  const keys = Object.keys(map).sort();
+  return {labels: keys, counts: keys.map(k=>map[k])};
+}
+function extensionSeries(commits){
+  // cumulative by chronological order
+  const sorted = [...commits].sort((a,b)=>{
+    const ta = Date.parse(a.timestamp||0)||0, tb = Date.parse(b.timestamp||0)||0;
+    return ta - tb;
+  });
+  const labels = [], cumul=[];
+  let acc=0;
+  sorted.forEach(c=>{
+    const ex = c.extensions ? (Array.isArray(c.extensions)? c.extensions : Object.values(c.extensions)) : [];
+    const add = ex.reduce((s,e)=>s+Number(e?.amount||0),0);
+    acc += add;
+    labels.push(c.timestamp ? new Date(c.timestamp).toISOString().slice(0,10) : `#${labels.length+1}`);
+    cumul.push(acc);
+  });
+  return {labels, cumul};
+}
+function changeTypes(commits){
+  const bucket = {};
+  commits.forEach(c=>{
+    const arr = c.changes ? (Array.isArray(c.changes)? c.changes : Object.values(c.changes)) : [];
+    arr.forEach(ch=>{
+      const type = (ch?.type || ch?.changeType || 'unknown').toString();
+      bucket[type] = (bucket[type]||0)+1;
+    });
+  });
+  const labels = Object.keys(bucket);
+  const data = labels.map(k=>bucket[k]);
+  return {labels, data};
+}
+
+function renderAnalytics(){
+  // Destroy previous charts if any
+  Object.values(state.charts).forEach(ch=> ch && ch.destroy && ch.destroy());
+  state.charts = {};
+
+  const commitsByDay = groupByDay(state.commits);
+  const extSeries = extensionSeries(state.commits);
+  const changeDist = changeTypes(state.commits);
+
+  state.charts.c1 = new Chart($('#chartCommitsByDay'),{
+    type:'line',
+    data:{labels:commitsByDay.labels, datasets:[{label:'Commits', data:commitsByDay.counts}]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
+  });
+
+  state.charts.c2 = new Chart($('#chartExtensionDays'),{
+    type:'line',
+    data:{labels:extSeries.labels, datasets:[{label:'Cumulative Extension Days', data:extSeries.cumul}]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
+  });
+
+  state.charts.c3 = new Chart($('#chartChangeTypes'),{
+    type:'doughnut',
+    data:{labels:changeDist.labels, datasets:[{label:'Changes', data:changeDist.data}]},
+    options:{responsive:true}
+  });
+
+  // Ratios & comparisons table
+  const tb = $('#ratiosTable');
+  const planned = Number(state.project?.duration || state.project?.Duration || 0);
+  const ext = state.totals.extensionsDays;
+  const actualPlanned = planned + ext;
+  const start = Date.parse(state.project?.startDate || state.project?.StartDate || '');
+  const now = Date.now();
+  const elapsedDays = start ? Math.max(0, Math.round((now - start)/86400000)) : null;
+  const elapsedPct = (elapsedDays!=null && actualPlanned>0) ? Math.min(100, (elapsedDays/actualPlanned*100)) : null;
+
+  tb.innerHTML = '';
+  const rows = [
+    ['Total commits', state.commits.length],
+    ['Total extension days', ext],
+    ['Planned duration (days)', planned || '—'],
+    ['Adjusted duration (planned + ext)', actualPlanned || '—'],
+    ['Elapsed days', (elapsedDays!=null? elapsedDays : '—')],
+    ['Elapsed vs Adjusted (%)', (elapsedPct!=null? `${elapsedPct.toFixed(1)}%` : '—')],
+    ['Current status', state.project?.Status || state.project?.status || '—'],
+    ['Payment status', state.project?.PaymentStatus || state.project?.paymentStatus || '—'],
+  ];
+  rows.forEach(([k,v])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th>${k}</th><td>${v}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ------------------ OVERVIEW ------------------ */
+function renderOverview(){
+  const kv = $('#projectKV');
+  kv.innerHTML = '';
+  const p = state.project || {};
+  Object.keys(p).sort().forEach(k=>{
+    // Hide heavy subtrees
+    if(['Commits','commits','changes'].includes(k)) return;
+    kv.appendChild($el('div',{class:'muted',html:k}));
+    let v = p[k];
+    if(typeof v === 'object'){
+      kv.appendChild($el('pre',{class:'codeish', html: JSON.stringify(v,null,2)}));
+    }else{
+      kv.appendChild($el('div',{html:String(v)}));
+    }
+  });
+}
+
+/* ------------------ TABS & FILTERS ------------------ */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const name = t.dataset.tab;
+    ['commits','analytics','overview'].forEach(n=>{
+      $('#tab-'+n).style.display = (n===name)? '' : 'none';
+    });
+    if(name==='analytics') renderAnalytics();
+    if(name==='overview') renderOverview();
+  });
+});
+
+$('#searchBox').addEventListener('input', renderCommits);
+
+/* ------------------ INIT ------------------ */
+(async function(){
+  try{
+    resolveProjectPath();
+    await loadProject();
+    await loadCommits();
+    renderCommits();
+    renderOverview(); // fill right away
+  }catch(err){
+    console.error(err);
+    alert('Failed to load: ' + err.message);
+  }
+})();
+</script>
+</body>
+</html>

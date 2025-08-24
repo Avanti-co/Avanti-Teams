@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Folder</title>
+ <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+  <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      color: #222;
+
+    }
+
+    header {
+      background: #003366;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      color: #003366;
+      margin-bottom: 20px;
+      font-size: 20px;
+      border-bottom: 2px solid #003366;
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #003366;
+      outline: none;
+    }
+
+    .upload-box {
+      border: 2px dashed #003366;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      background: #f9fbfd;
+      transition: background 0.2s;
+    }
+
+    .upload-box:hover {
+      background: #eef4fa;
+    }
+
+    .upload-box img {
+      max-width: 220px;
+      margin-top: 12px;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .btn {
+      background: #003366;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.2s;
+    }
+
+    .btn:hover {
+      background: #0055aa;
+    }
+
+    #loading {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 18px;
+      color: #666;
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/a2d9d6a64b.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+  <header>
+    <h1>Edit Folder</h1>
+  </header>
+
+  <div class="container">
+    <h2>Folder Information</h2>
+
+    <div id="formContainer" style="display:none;">
+      <div class="form-group">
+        <label for="folderName">Folder Name</label>
+        <input type="text" id="folderName" />
+      </div>
+
+      <div class="form-group">
+        <label for="for">For</label>
+        <input type="text" id="for" readonly />
+      </div>
+
+      <div class="form-group companyField">
+        <label for="companyName">Company Name</label>
+        <input type="text" id="companyName" />
+      </div>
+
+      <div class="form-group clientField">
+        <label for="clientName">Client Name</label>
+        <input type="text" id="clientName" />
+      </div>
+
+      <div class="form-group sponsorField">
+        <label for="sponsor">Sponsor</label>
+        <input type="text" id="sponsor" />
+      </div>
+
+      <div class="form-group occField">
+        <label for="occupation">Occupation</label>
+        <input type="text" id="occupation" />
+      </div>
+
+      <div class="form-group">
+        <label for="emails">Emails (separate with space)</label>
+        <input type="text" id="emails" />
+      </div>
+
+      <div class="upload-box" id="uploadBox">Click to Upload</div>
+      <input type="file" id="fileInput" style="display:none;" accept="image/*" />
+
+      <button class="btn" id="saveBtn">Save Changes</button>
+    </div>
+
+    <div id="loading">Loading folder...</div>
+  </div>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // ✅ Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+      authDomain: "users-66be4.firebaseapp.com",
+      databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+      projectId: "users-66be4",
+      storageBucket: "users-66be4.appspot.com",
+      messagingSenderId: "776585122050",
+      appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+    const IMAGEKIT_PRIVATE_KEY = "private_LWNMj6jq0yExzVkJTM9X0NV3Sk8="; // ⚠️ should be server-side
+    const IMAGEKIT_FOLDER = "/folders";
+
+    let uploadedImageUrl = "";
+
+    const folderId = new URLSearchParams(location.search).get("folderId");
+    const folderRef = ref(db, "folders/" + folderId);
+
+    const uploadBox = document.getElementById("uploadBox");
+    const fileInput = document.getElementById("fileInput");
+
+    // ✅ Load folder data
+    async function loadFolder() {
+      if (!folderId) {
+        document.getElementById("loading").innerText = "No folderId in URL.";
+        return;
+      }
+
+      const snap = await get(folderRef);
+      if (!snap.exists()) {
+        document.getElementById("loading").innerText = "Folder not found.";
+        return;
+      }
+
+      const data = snap.val();
+
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("formContainer").style.display = "block";
+
+      // Populate inputs
+      document.getElementById("folderName").value = data.FolderName || "";
+      document.getElementById("for").value = data.For || "";
+      document.getElementById("companyName").value = data.CompanyName || "";
+      document.getElementById("clientName").value = data.ClientName || "";
+      document.getElementById("sponsor").value = data.Sponsor || "";
+      document.getElementById("occupation").value = data.Occupation || "";
+      document.getElementById("emails").value = (data.Emails || []).join(" ");
+      uploadedImageUrl = data.ImageURL || "";
+
+      if (uploadedImageUrl) {
+        uploadBox.innerHTML = `<img src="${uploadedImageUrl}" alt="Preview">`;
+      }
+
+      // Show/hide fields based on "For"
+      document.querySelectorAll('.companyField').forEach(el => el.style.display = data.For === "Company" ? "block" : "none");
+      document.querySelectorAll('.clientField').forEach(el => el.style.display = data.For === "Individual" ? "block" : "none");
+      document.querySelectorAll('.sponsorField').forEach(el => el.style.display = data.For === "Company" ? "block" : "none");
+      document.querySelectorAll('.occField').forEach(el => el.style.display = data.For === "Individual" ? "block" : "none");
+    }
+
+    // ✅ Upload new image
+    uploadBox.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", async (e) => {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        uploadBox.innerHTML = `<i class="fas fa-spinner fa-spin" style="font-size:40px; color:#003366;"></i>`;
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("fileName", `${Date.now()}-${file.name}`);
+          formData.append("folder", IMAGEKIT_FOLDER);
+
+          const resp = await fetch(IMAGEKIT_UPLOAD_URL, {
+            method: "POST",
+            headers: {
+              Authorization: "Basic " + btoa(IMAGEKIT_PRIVATE_KEY + ":")
+            },
+            body: formData
+          });
+
+          const data = await resp.json();
+          if (data.url) {
+            uploadedImageUrl = data.url;
+            uploadBox.innerHTML = `<img src="${uploadedImageUrl}" alt="Preview">`;
+          } else {
+            throw new Error("Upload failed");
+          }
+        } catch (err) {
+          console.error(err);
+          uploadBox.innerHTML = `<span style="color:red;">Upload failed.</span>`;
+        }
+      }
+    });
+
+    // ✅ Save updated data
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const folderData = {
+        FolderName: document.getElementById("folderName").value.trim(),
+        For: document.getElementById("for").value,
+        CompanyName: document.getElementById("companyName").value.trim(),
+        ClientName: document.getElementById("clientName").value.trim(),
+        Sponsor: document.getElementById("sponsor").value.trim(),
+        Occupation: document.getElementById("occupation").value.trim(),
+        Emails: document.getElementById("emails").value.trim().split(/[\s,]+/).filter(e => e.includes("@")),
+        ImageURL: uploadedImageUrl,
+        updatedAt: Date.now(),
+        id: folderId
+      };
+
+      await set(folderRef, folderData);
+      alert("✅ Folder updated successfully!");
+    });
+
+    loadFolder();
+  </script>
+</body>
+</html>

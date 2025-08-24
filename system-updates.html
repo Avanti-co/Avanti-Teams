@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>System Update Notification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    [contenteditable="true"]:hover {
+      outline: 1px dashed #4A73A6;
+      cursor: text;
+    }
+    img.editable-image {
+      cursor: pointer;
+      outline: 2px dashed transparent;
+    }
+    img.editable-image:hover {
+      outline: 2px dashed #4A73A6;
+    }
+    #doneBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #4A73A6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+    #doneBtn:hover {
+      background: #3b5d87;
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background:white;">
+
+  <div style="display:none; overflow:hidden; line-height:1px; opacity:0; max-height:0; max-width:0;">
+    Important system update details from Avanti.
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:white;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%; max-width:600px;">
+          <tr>
+            <td style="background:#ffffff; padding:32px 28px; 
+border-radius:8px;">
+<div class="brand" aria-hidden="true" style=" display:flex;align-items:center;gap:12px;font-weight:800;
+      letter-spacing:0.6px;">
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" class="logo-mark" id="logo-mark" style=" text-align: left;width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--white), rgba(255,255,255,0.85));
+      color:var(--dark); font-weight:800; font-size:20px;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.5);">
+
+</div>
+      <div>
+        <div style="font-size:18px;"><a style="margin:0 0 12px 0; font-family:Arial, Helvetica, sans-serif; font-size:25px; line-height:28px; color: #3f72af;"> Avanti</a> </div>
+        <div style="font-size:13px;color: #233045;font-weight:600; font-family:Arial, Helvetica, sans-serif;"> Design • Develop • Evolve</div>
+      </div>
+    </div>
+<br><br>
+              <h1 contenteditable="true" style="margin:0 0 12px 0; font-family:Arial, sans-serif; font-size:22px; line-height:28px; color:#233045;">
+                System Update Scheduled
+              </h1>
+              <p contenteditable="true" style="margin:0 0 18px; font-family:Arial, sans-serif; font-size:14px; line-height:22px; color:#6B7C93;">
+                Our systems will undergo a scheduled update to enhance performance and security. Minimal downtime expected.
+              </p>
+              <a href="#" class="editable-link" style="display:inline-block; margin-top:20px; padding:12px 18px; background:#0F2A45; color:#fff; text-decoration:none; border-radius:6px; font-family:Arial, sans-serif; font-size:14px; font-weight:bold;">
+                View Details
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:14px 10px; color:#DCE6F3; font-family:Arial, sans-serif; font-size:11px;">
+              © 2025 Avanti. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <button id="doneBtn">Done</button>
+
+  <script>
+    document.querySelectorAll("img").forEach(img => {
+      img.classList.add("editable-image");
+      img.addEventListener("click", () => {
+        const newUrl = prompt("Enter the image URL:", img.src);
+        if (newUrl) img.src = newUrl;
+      });
+    });
+    document.querySelectorAll("a.editable-link").forEach(a => {
+      a.setAttribute("contenteditable", "true");
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        const newHref = prompt("Enter the link URL:", a.href);
+        if (newHref) a.href = newHref;
+      });
+    });
+    document.getElementById("doneBtn").addEventListener("click", () => {
+      const htmlContent = document.body.innerHTML;
+      const key = "template_" + Date.now();
+      localStorage.setItem(key, htmlContent);
+      window.location.href = "send-email.html?key=" + key;
+    });
+  </script>
+
+</body>
+</html>

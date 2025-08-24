@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.62, maximum-scale=0.62, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+<script>
+  (function() {
+    emailjs.init("VdZnwQXzlvXUMvOpB"); // 🔑 from EmailJS dashboard
+  })();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, get, set, push, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+  authDomain: "users-66be4.firebaseapp.com",
+  databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+  projectId: "users-66be4",
+  storageBucket: "users-66be4.appspot.com",
+  messagingSenderId: "776585122050",
+  appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// -------- URL params / where the project is ----------
+const urlParams = new URLSearchParams(window.location.search);
+const folderId = urlParams.get("folderId");
+const projectId = urlParams.get("projectId");
+const projectName = urlParams.get("name"); // fallback search by name
+
+// Global state
+let projectPointer = null;   // { location: 'folders' | 'project_files', projectRef, commitsRef, notesRef, meta }
+let projectData = null;      // loaded project object
+let totalCommittedExtensionDays = 0; // sum from commits
+let pending = {
+  statusTo: null,                // STATUS NAME
+  noteForStatus: null,
+paymentCompleted: false,           // STATUS NAME whose note changed
+  noteText: null,                // the new note text
+  extensions: [],                // [{amount, reason}]
+  other: []                      // any other minor flags/messages if needed
+};
+let unsaved = false;
+
+// ---- Status map & helpers ----
+const STATUS_STEPS = [
+  "Fact Finding",
+  "Design",
+  "Development",
+  "Testing & Debugging",
+  "Implementation",
+  "Complete"
+];
+
+function statusIndexByName(name) {
+  return STATUS_STEPS.findIndex(s => (s || "").toLowerCase() === (name || "").toLowerCase());
+}
+function progressPercentForStatus(statusName) {
+  const idx = statusIndexByName(statusName);
+  if (idx < 0) return 0;
+  const stepCount = STATUS_STEPS.length - 1;
+  const base = 5; // Fact Finding starts at 5%
+  const max = 100 - base;
+  return Math.round(base + (idx / stepCount) * max);
+}
+
+// ---- Path resolvers ----
+function makePointerForFound(found) {
+  // found = { location: 'folders'|'project_files', folderId?, projectId?, projectName?, data }
+  const meta = {
+    location: found.location,
+    folderId: found.folderId || null,
+    projectId: found.projectId || null,
+    projectName: found.data?.ProjectName || found.projectName || null
+  };
+
+  let basePath = "";
+  if (found.location === "folders") {
+    basePath = `folders/${found.folderId}/projects/${found.projectId}`;
+  } else {
+    basePath = `project_files/${meta.projectName}`;
+  }
+
+  return {
+    location: found.location,
+    projectRef: ref(db, basePath),
+    commitsRef: ref(db, `${basePath}/Commits`),
+    notesRef: ref(db, `${basePath}/notes`),
+    meta
+  };
+}
+
+async function findProjectByFolderAndId(folderId, projectId) {
+  const snap = await get(ref(db, `folders/${folderId}/projects/${projectId}`));
+  if (snap.exists()) {
+    return { location: "folders", folderId, projectId, data: snap.val() };
+  }
+  return null;
+}
+async function findProjectByName(name) {
+  // search folders
+  const foldersSnap = await get(ref(db, "folders"));
+  if (foldersSnap.exists()) {
+    const folders = foldersSnap.val();
+    for (const fId in folders) {
+      const projects = folders[fId]?.projects || {};
+      for (const pId in projects) {
+        if (projects[pId]?.ProjectName === name) {
+          return { location: "folders", folderId: fId, projectId: pId, data: projects[pId] };
+        }
+      }
+    }
+  }
+  // fallback project_files
+  const fileSnap = await get(ref(db, `project_files/${name}`));
+  if (fileSnap.exists()) {
+    return { location: "project_files", projectName: name, data: fileSnap.val() };
+  }
+  return null;
+}
+
+// --- Load commits & sum extension days ---
+async function loadCommittedExtensions(commitsRef) {
+  totalCommittedExtensionDays = 0;
+  const cSnap = await get(commitsRef);
+  if (cSnap.exists()) {
+    const commits = cSnap.val();
+    for (const key in commits) {
+      const entry = commits[key];
+      if (Array.isArray(entry?.extensions)) {
+        for (const e of entry.extensions) {
+          const amt = parseInt(e?.amount || 0, 10);
+          if (!isNaN(amt)) totalCommittedExtensionDays += amt;
+        }
+      }
+    }
+  }
+}
+
+
+// ---- Date helpers ----
+function parseDuration(durationStr) {
+  if (!durationStr) return 0;
+  durationStr = durationStr.toLowerCase().trim();
+  let days = 0;
+  if (durationStr.includes("day")) days = parseInt(durationStr);
+  else if (durationStr.includes("week")) days = parseInt(durationStr) * 7;
+  else if (durationStr.includes("month")) {
+    days = parseInt(durationStr) * 30;
+    if (durationStr.includes("+")) days += 7;
+  }
+  return isNaN(days) ? 0 : days;
+}
+function getRelativeDate(startDateStr, durationStr, extraDays = 0) {
+  const startDate = new Date(startDateStr);
+  const durationDays = parseDuration(durationStr) + extraDays;
+
+  const dueDate = new Date(startDate.getTime() + durationDays * 86400000);
+  const today = new Date();
+
+  const due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+  const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((due - now) / 86400000);
+
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "tomorrow";
+  if (diffDays === -1) return "yesterday";
+  if (diffDays > 1 && diffDays <= 7) return `in ${diffDays} days`;
+  if (diffDays > 7 && diffDays <= 14) return "in two weeks";
+  if (diffDays > 14 && diffDays <= 21) return "in three weeks";
+  if (diffDays > 21 && diffDays <= 31) return "in a month";
+  if (diffDays > 31) return `in ${diffDays} days`;
+
+  if (diffDays < -1 && diffDays >= -7) return `${Math.abs(diffDays)} days ago`;
+  if (diffDays < -7 && diffDays >= -14) return "last week";
+  if (diffDays < -14 && diffDays >= -21) return "three weeks ago";
+  if (diffDays < -21 && diffDays >= -31) return "last month";
+  if (diffDays < -31) return `${Math.abs(diffDays)} days ago`;
+
+  return "";
+}
+
+
+// ---- Rendering main info (unchanged style) ----
+function displayTaskInfo(data) {
+  // compute effective total extension = committed + pending staged
+  const pendingExtTotal = pending.extensions.reduce((a, e) => a + (parseInt(e.amount || 0, 10) || 0), 0);
+  const totalExtra = totalCommittedExtensionDays + pendingExtTotal;
+
+  const relativeInfo = getRelativeDate(data.StartDate, data.Duration, totalExtra);
+
+  // Due date & color
+  const startDate = new Date(data.StartDate);
+  const durationDays = parseDuration(data.Duration) + totalExtra;
+  const dueDate = new Date(startDate.getTime() + durationDays * 86400000);
+
+  const today = new Date();
+  const msPerDay = 86400000;
+  const daysLeft = Math.round((dueDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / msPerDay);
+
+  let dueColor = "green";
+  if (daysLeft <= 3 && daysLeft >= 0) dueColor = "orange";
+  else if (daysLeft < 0) dueColor = "red";
+  else if (daysLeft > 30) dueColor = "blue";
+  else if (daysLeft > 14) dueColor = "purple";
+
+  const effectiveStatus = pending.statusTo || data.Status || "Fact Finding";
+  const percent = progressPercentForStatus(effectiveStatus);
+
+let url = "";
+if (data.ProjectName && !folderId && !projectId) {
+  // Only ProjectName → edit-file.html
+  url = "edit-file.html?name=" + encodeURIComponent(data.ProjectName);
+} else if (folderId && projectId) {
+  // folderId + projectId → edit-file2.html
+  let params = [];
+  params.push("folderId=" + encodeURIComponent(folderId));
+  params.push("projectId=" + encodeURIComponent(projectId));
+  url = "edit-file2.html?" + params.join("&");
+}
+
+
+  // inject into existing layout (kept your markup)
+  document.getElementById("project-info").innerHTML = `
+
+
+<div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+    <div style="margin-top: 100px;" class="container">
+
+      <div class="badge">
+        <h6>
+          <b>${data.For || ""}</b> • 
+          <b>${data.Category || ""} • </b> 
+          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
+        </h6>
+      </div>
+<div style="position: relative; display:inline-block; float:right; ">
+  <button 
+    style="font-size:25px; cursor:pointer;"
+    onclick="var d=this.nextElementSibling; d.style.display=(d.style.display==='block')?'none':'block';">
+    <i class="fas fa-ellipsis-v"></i>
+  </button>
+  
+  <div style="
+    display:none;
+    position:absolute;
+    right:0;
+    background:#fff;
+    border:1px solid #ccc;
+    border-radius:6px;
+    min-width:150px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+    z-index:1000;
+  ">
+    <div style="padding:8px 12px; cursor:pointer;" onclick="${url ? `window.location.href='${url}';` : `alert('No valid data to open');`} this.parentElement.style.display='none';">Edit file</div>
+    <div style="padding:8px 12px; cursor:pointer;" onclick="window.location.href='commits.html?${projectName ? `name=${projectName}` : `folderId=${folderId}&projectId=${projectId}`}'; this.parentElement.style.display='none';">Analytics</div>
+  
+  </div>
+</div>
+
+      <div class="grid-top">
+        <div class="upload-box">
+          <img class="logo" src="${data.ImageURL || "https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293"}" alt="Project Logo">
+        </div>
+        <div>
+
+
+          <h1 id="project-title">${data.ProjectName || ""}</h1>
+          <div class="info-row">  
+            ${data.CompanyName ? `<b><i class="fa-solid fa-building"></i> ${data.CompanyName}</b>` : ""}
+            ${data.Sponsor ? ` <b> <i class="fa-solid fa-user-tag"></i> ${data.Sponsor}</b>` : ""}
+          </div>
+          <div class="info-row"> 
+            ${data.ClientName ? `<b><i class="fa-solid fa-user-tag"></i> ${data.ClientName}</b>` : ""}
+            ${data.Occupation ? `<b><i class="fa-solid fa-briefcase"></i> ${data.Occupation}</b>` : ""}
+          </div>
+          <p>${data.Description || ""}</p>
+          ${
+            data.SpecialRequests && data.SpecialRequests.length > 0
+              ? data.SpecialRequests
+                  .filter(req => req && req.trim() !== "")
+                  .map(req => `<div class="badge2"><b>${req}</b></div>`)
+                  .join(" ")
+              : ""
+          }
+        </div>
+      </div>
+
+      <button id="commit-btn" class="btn-success btn btn_outline">Commit</button>
+    </div>
+
+    <div class="container">
+      <div class="details">
+        <div class="badge2"><b>${data.Size || ""} Project</b></div>
+        <div class="badge2">
+          <b>${Math.floor((parseDuration(data.Duration) + totalExtra) / 7)} week(s)${
+            ((parseDuration(data.Duration) + totalExtra) % 7) ? ` + ${ (parseDuration(data.Duration) + totalExtra) % 7 } day(s)` : ""
+          } Duration</b>
+        </div>
+        <div class="badge2">
+          <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
+        </div>
+
+        <h1 style="margin-top: 20px; font-size: 28px;">Project Status</h1>
+        <div style="display:flex; margin-bottom:25px; gap:9px;">
+          <p class="dates">${effectiveStatus}</p>
+          <p class="dates" id="perc"> • ${percent}% completed </p>
+          <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+        </div>
+
+        <div class="progress" id="status-flow" style="cursor:pointer;">
+          ${STATUS_STEPS.map((name, i) => `
+            <div class="b3" data-status="${name}">
+              <div class="badge step-number" data-index="${i}">${i+1}</div>
+              <div class="badge3">${name}</div>
+            </div>
+          `).join("")}
+        </div>
+
+        <div style="max-width:100%; grid-template-columns:1fr; display:grid; justify-content:space-between; height:100%;">
+          <div>
+            <label><i class="fa fa-clock"></i> Extend working duration</label>
+            <div class="container2" id="ext-options">
+              <div class="badge2 ext-btn" data-days="1">+1 day</div>
+              <div class="badge2 ext-btn" data-days="2">+2 day</div>
+              <div class="badge2 ext-btn" data-days="7">+1 week</div>
+              <div class="badge2 ext-btn" data-days="14">+2 weeks</div>
+              <div class="badge2 ext-btn" data-days="21">+3 weeks</div>
+            </div>
+          </div>
+
+          <div>
+            <label><i class="fa fa-info-circle"></i> Reason</label>
+            <div class="container2">
+              <div>
+                <div class="badge2 reason-btn">Resource Constraints</div>
+                <div class="badge2 reason-btn">Underestimation</div>
+                <div class="badge2 reason-btn">Testing delays</div>
+                <div class="badge2 reason-btn">Pending payment</div>
+                <input class="badge2 reason-btn" id="custom-reason" tabindex="0" type="text" placeholder="Custom Reason">
+              </div>
+            </div>
+            <p class="dates" id="pending-extensions-note" style="margin-top:6px;"></p>
+          </div>
+
+          <div>
+            <div class="progress-bar"><span id="progress-span" style="width:${percent}%"></span></div>
+            <p class="dates"><span id="progress-label">${percent}%</span> completed.</p>
+          </div>
+
+          <div class="progress1">
+            <div>
+              <label>Started on</label>
+              <p class="dates"><i class="fa fa-calendar"></i> ${new Date(data.StartDate).toDateString()}</p>
+            </div>
+            <div>
+              <label>Due On</label>
+              <p class="dates"><i class="fa fa-calendar-check"></i> ${dueDate.toDateString()}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 28px;" class="container">
+      <h1>Developer's Notes</h1>
+      <div style="display:flex; margin-bottom:25px; gap:9px;">
+        <p class="dates">${effectiveStatus}</p>
+        <p class="dates" id="perc"> • ${percent}% completed </p>
+        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+      </div>
+
+      <div>
+        <label class="note"><i class="fa fa-file-text"></i> ${effectiveStatus} Notes</label>
+        <textarea id="status-note" style="
+          width: 90%;
+          height: 300px;
+          padding: 15px 20px;
+          font-family: 'Courier New', monospace;
+          font-size: 16px;
+          line-height: 1.6;
+          color: #333;
+          background: repeating-linear-gradient(white, white 28px, #e3e3e3 29px);
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+          resize: vertical;
+          outline: none;
+        "></textarea>
+        <button id="view-notes-btn" class="btn-success btn badge2">View Previous Notes</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <h1>Payments info</h1>
+      <div style="display:flex; margin-bottom:25px; gap:9px;">
+        <p class="dates">${effectiveStatus}</p>
+        <p class="dates" id="perc"> • ${percent}% completed </p>
+        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+      </div>
+
+
+<div style="max-width:300px; padding:15px; border:1px solid #ddd; border-radius:8px; background:#fafafa; font-family:Arial, sans-serif;">
+  <dl style="margin:0;">
+    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+      <dt style="font-weight:bold; color:#333;">Budget:</dt>
+      <dd style="margin:0; color:#111;">${data.Budget || ""}</dd>
+    </div>
+    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+      <dt style="font-weight:bold; color:#333;">Prepaid:</dt>
+      <dd style="margin:0; font-weight:bold; color:${data.Prepaid ? 'green' : 'red'};">
+        ${data.Prepaid ? "Yes" : "No"}
+      </dd>
+    </div>
+
+    ${
+      !data.Prepaid ? `
+      <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
+        <dt style="font-weight:bold; color:#333;">Status:</dt>
+        <dd id="pay-status" style="margin:0; font-weight:bold; color:${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'green' : 'orange'};">
+          ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}
+        </dd>
+      </div>
+
+      <!-- Hidden input so your save/diff logic sees the change -->
+      <input type="hidden" id="payment-status-input" name="PaymentStatus"
+             value="${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}">
+
+      <div style="padding:10px 0; text-align:center;">
+        <button id="toggle-payment-btn" class="btn badge2">
+          ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Mark as Pending' : 'Complete Payment'}
+        </button>
+      </div>
+` : ""
+    }
+  </dl>
+</div>
+    </div>
+
+    <div class="container">
+      <h1>Contact Info</h1>
+      <div style="display:flex; margin-bottom:25px; gap:9px;">
+        <p class="dates">${effectiveStatus}</p>
+        <p class="dates" id="perc"> • ${percent}% completed </p>
+        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+      </div>
+      <div class="container1">
+        <p><b>Emails</b><br>
+          ${Array.isArray(data.Emails) ? data.Emails.map(e => `<b class="badge2">${e}</b>`).join(" ") : ""}
+        </p>
+        <p><b>Phones</b><br>
+          ${Array.isArray(data.Phones) ? data.Phones.map(p => `<b class="badge2">${p}</b>`).join(" ") : ""}
+        </p>
+      </div>
+    </div>
+  `;
+
+
+if (!data.Prepaid) {
+  const statusEl = document.getElementById("pay-status");
+  const btn = document.getElementById("toggle-payment-btn");
+  const statusInput = document.getElementById("payment-status-input");
+
+  // Track payment completion internally instead of relying on `pending`
+  let paymentCompleted = (data.PaymentStatus === "Complete");
+
+  function applyStatus(newStatus) {
+    data.PaymentStatus = newStatus;
+    paymentCompleted = (newStatus === "Complete");
+
+    // Update status text + color
+    statusEl.textContent = newStatus;
+    statusEl.style.color = paymentCompleted ? "green" : "orange";
+
+    // Update button text
+    btn.textContent = paymentCompleted ? "Mark as Pending" : "Complete Payment";
+
+    // Update hidden input and trigger events
+    statusInput.value = newStatus;
+    statusInput.dataset.dirty = "true";
+    statusInput.dispatchEvent(new Event("input", { bubbles: true }));
+    statusInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+    // Mark form as dirty if available
+    window.__formDirty = true;
+    if (typeof window.markDirty === "function") {
+      window.markDirty("PaymentStatus", newStatus);
+    }
+  }
+
+  // Initialize UI with current status
+  applyStatus(data.PaymentStatus || "Pending");
+
+  // Toggle on click
+  btn.addEventListener("click", () => {
+    const next = paymentCompleted ? "Pending" : "Complete";
+    applyStatus(next);
+  });
+}
+
+  // Apply status highlighting & handlers
+  paintStatuses(effectiveStatus);
+  hookStatusClicks();
+  hookExtensionUI();
+  hookNotes(data);
+  hookPayments();
+  hookCommit(data);
+}
+
+
+// Highlight steps
+function paintStatuses(currentStatus) {
+  const currentIdx = statusIndexByName(currentStatus);
+  document.querySelectorAll('#status-flow .b3').forEach((block, idx) => {
+    const numEl = block.querySelector('.step-number');
+    const badge3 = block.querySelector('.badge3');
+    numEl.style.background = '';
+    numEl.style.color = 'black'
+    badge3.style.background ='var(--light-gray)'
+    badge3.style.fontWeight = 'normal';
+
+    if (idx < currentIdx) {
+      numEl.style.background = "linear-gradient(135deg, #4caf50, #8bc34a)";
+      badge3.style.fontWeight = 'bold';
+      badge3.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
+
+    } else if (idx === currentIdx) {
+      numEl.style.background = "linear-gradient(135deg, #ff5722, #ff9800)";
+      numEl.style.color = '#fff';
+      badge3.style.background = 'linear-gradient(135deg, #ff5722, #ff9800)'
+      badge3.style.fontWeight = 'bold';
+    }
+  });
+
+  const percent = progressPercentForStatus(currentStatus);
+  const span = document.getElementById("progress-span");
+  const lab = document.getElementById("progress-label");
+
+  if (span) {
+    span.style.width = `${percent}%`;
+    span.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
+  }
+  if (lab) lab.textContent = `${percent}%`;
+document.querySelectorAll('[id="perc"]').forEach(el => {
+  el.textContent = `• ${percent}% completed`;
+});
+}
+
+function hookStatusClicks() {
+  document.querySelectorAll('#status-flow .b3').forEach(block => {
+    block.addEventListener('click', () => {
+      const toName = block.getAttribute('data-status');
+      const fromName = pending.statusTo || (projectData.Status || "Fact Finding");
+      if (toName && toName !== fromName) {
+  pending.statusTo = toName;
+  unsaved = true;
+  paintStatuses(toName);
+
+  document.querySelectorAll('.dates').forEach(el => {
+    if (el.textContent.includes(fromName)) {
+      el.textContent = el.textContent.replace(fromName, toName);
+    }
+  });
+
+  document.querySelectorAll('.note').forEach(el => {
+    if (el.textContent.includes(fromName)) {
+      el.textContent = el.textContent.replace(fromName, toName);
+    }
+  });
+
+  loadNoteForStatus(toName);
+
+  // 🔑 keep status in sync
+  
+}
+    });
+  });
+}
+
+function hookExtensionUI() {
+  const reasonButtons = Array.from(document.querySelectorAll('.reason-btn'));
+  const extButtons = Array.from(document.querySelectorAll('.ext-btn'));
+  let chosenReason = null;
+  let chosenDays = null;
+
+  function updateCommit() {
+    const customReason = document.getElementById("custom-reason")?.value.trim();
+    if (chosenDays && (chosenReason || customReason)) {
+      const reason = customReason || chosenReason;
+      pending.extensions = [{ amount: chosenDays, reason }];
+    } else {
+      pending.extensions = [];
+    }
+  }
+
+  // Pick/unpick reason
+  reasonButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (chosenReason === btn.textContent.trim()) {
+        btn.style.outline = '';
+        chosenReason = null;
+      } else {
+        reasonButtons.forEach(b => b.style.outline = '');
+        btn.style.outline = '2px solid #444';
+        chosenReason = btn.textContent.trim();
+      }
+    });
+  });
+
+  // Pick/unpick extension days
+  extButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (chosenDays === parseInt(btn.dataset.days, 10)) {
+        btn.style.outline = '';
+        chosenDays = null;
+      } else {
+        extButtons.forEach(b => b.style.outline = '');
+        btn.style.outline = '2px solid #444';
+        chosenDays = parseInt(btn.dataset.days, 10);
+      }
+    });
+  });
+
+  // Handle commit
+  document.getElementById("commit-btn")?.addEventListener("click", () => {
+    const customReason = document.getElementById("custom-reason")?.value.trim();
+
+    // case 1: nothing picked → commit empty
+    if (!chosenDays && !(chosenReason || customReason)) {
+      pending.extensions = [];
+      return;
+    }
+
+    // case 2: one missing → alert, block commit
+    if (!chosenDays || !(chosenReason || customReason)) {
+      alert("⚠️ Opps!!!  Extension not saved, You must select both a reason and an extension, or neither.");
+      return; // 🔑 prevents commit
+    }
+
+    // case 3: both present → commit
+    updateCommit();
+  });
+}
+// NOTES: one note per status, stored at notes/<StatusName>
+async function loadNoteForStatus(statusName) {
+  if (!projectPointer) return;
+  const snap = await get(ref(db, `${projectPointer.notesRef._path.toString()}/${statusName}`));
+  const textarea = document.getElementById('status-note');
+  if (textarea) textarea.value = snap.exists() ? (snap.val() || "") : "";
+}
+
+function hookNotes(data) {
+  const currentStatus = pending.statusTo || data.Status || "Fact Finding";
+  loadNoteForStatus(currentStatus);
+
+  const area = document.getElementById('status-note');
+  if (area) {
+    area.addEventListener('input', () => {
+      pending.noteForStatus = pending.statusTo || (projectData.Status || "Fact Finding");
+      
+      pending.noteText = area.value;
+      unsaved = true;
+    });
+  }
+
+  const btn = document.getElementById('view-notes-btn');
+  if (btn) {
+    btn.addEventListener('click', openNotesModal);
+  }
+}
+
+
+
+
+async function openNotesModal() {
+  // Fetch all notes
+  const notesSnap = await get(projectPointer.notesRef);
+  const notes = notesSnap.exists() ? notesSnap.val() : {};
+  const statuses = STATUS_STEPS;
+
+  // Build modal
+  const wrapper = document.createElement('div');
+  wrapper.id = 'notes-modal';
+  wrapper.style.position = 'fixed';
+  wrapper.style.inset = '0';
+  wrapper.style.background = 'rgba(0,0,0,0.5)';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.zIndex = '9999';
+
+  const panel = document.createElement('div');
+  panel.style.background = '#fff';
+  panel.style.maxWidth = '800px';
+  panel.style.width = '90%';
+  panel.style.maxHeight = '85vh';
+  panel.style.overflow = 'auto';
+  panel.style.borderRadius = '10px';
+  panel.style.padding = '20px';
+  panel.innerHTML = `
+    <h2 style="margin-top:0;">Previous Notes</h2>
+    <p class="dates" style="margin-bottom:12px;">Edit notes per status. Remember: one note per status.</p>
+    <div id="notes-list">
+      ${statuses.map(s => `
+        <div style="border:1px solid #eee; padding:12px; border-radius:8px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;">${s}</h3>
+            <button data-save="${s}" class="badge2 btn">Save</button>
+          </div>
+          <textarea data-area="${s}" style="width:100%; height:120px; margin-top:8px; padding:10px; border-radius:6px; border:1px solid #ddd;">${(notes[s] || "")}</textarea>
+        </div>
+      `).join("")}
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+      <button id="close-notes" class="btn badge2">Close</button>
+    </div>
+  `;
+  wrapper.appendChild(panel);
+  document.body.appendChild(wrapper);
+
+  // events
+  panel.querySelectorAll('[data-save]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const status = btn.getAttribute('data-save');
+      const area = panel.querySelector(`[data-area="${status}"]`);
+      const text = (area?.value || "");
+      // stage the change (do not write yet)
+      if (status === (pending.statusTo || projectData.Status)) {
+        pending.noteForStatus = status;
+        pending.noteText = text;
+      }
+      // allow editing historical notes too
+      pending.other.push(`Note edited for ${status}`);
+      unsaved = true;
+      btn.textContent = "Staged ✓";
+      setTimeout(() => btn.textContent = "Save", 800);
+    });
+  });
+
+  panel.querySelector('#close-notes').addEventListener('click', () => {
+    document.body.removeChild(wrapper);
+  });
+}
+
+// Payments
+function hookPayments() {
+  const btn = document.getElementById('toggle-payment-btn');
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const el = document.getElementById('pay-status');
+      if (!el) return;
+
+      if (data.PaymentStatus === 'Complete') {
+        // switch to Pending
+        data.PaymentStatus = 'Pending';
+        pending.paymentCompleted = false;
+        el.textContent = 'Pending';
+        el.style.color = 'orange';
+        btn.textContent = 'Complete Payment';
+      } else {
+        // switch to Complete
+        data.PaymentStatus = 'Complete';
+        pending.paymentCompleted = true;
+        el.textContent = 'Complete';
+        el.style.color = 'green';
+        btn.textContent = 'Mark as Pending';
+      }
+
+      unsaved = true; // notify your save function
+      console.log('Toggled status:', data.PaymentStatus, pending.paymentCompleted);
+    });
+  }
+}
+
+
+// Commit: write staged changes to project + create Commit entry
+function hookCommit(data) {
+  const btn = document.getElementById('commit-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    try {
+      // Build change set
+      const updates = {};
+      const changesSummary = [];
+
+      // Status change (save by name)
+      const fromStatus = data.Status || "Fact Finding";
+      const toStatus = pending.statusTo || fromStatus;
+      if (toStatus !== fromStatus) {
+        updates['Status'] = toStatus;
+        updates['Percentage'] = progressPercentForStatus(toStatus);
+        changesSummary.push({ type: 'status', from: fromStatus, to: toStatus });
+      }
+
+      // Note change (one note per status)
+      if (pending.noteForStatus && typeof pending.noteText === 'string') {
+        updates[`notes/${pending.noteForStatus}`] = pending.noteText;
+        changesSummary.push({ type: 'noteUpdatedFor', status: pending.noteForStatus });
+      }
+
+      // Payment completion
+      if (data.PaymentStatus === 'Complete') {
+    updates['PaymentStatus'] = 'Complete';
+    changesSummary.push({ type: 'paymentCompleted', value: true });
+} else {
+    updates['PaymentStatus'] = 'Pending';
+    changesSummary.push({ type: 'paymentCompleted', value: false });
+}
+
+
+      // Apply updates to the project node (single call if there are updates)
+      if (Object.keys(updates).length) {
+        await update(projectPointer.projectRef, updates);
+      }
+
+      // Build Commit entry
+      const now = new Date();
+      const stamp = now.toISOString();
+      const commit = {
+        timestamp: stamp,
+        changes: changesSummary,
+        extensions: pending.extensions.map(e => ({
+          amount: parseInt(e.amount || 0, 10) || 0,
+          reason: e.reason
+        })),
+      };
+
+      // Only if there is something to log
+      // Only if there is something to log
+if (commit.changes.length || commit.extensions.length) {
+  await push(projectPointer.commitsRef, commit);
+  alert("✅ Commit saved.");
+
+  // ✅ Only open email modal if there was something committed
+  openEmailModalAfterCommit(projectData, commit);
+} else {
+  alert("ℹ️ Nothing to commit.");
+}
+    } catch (err) {
+      alert("❌ Commit failed: " + (err?.message || err));
+    }
+  });
+}
+
+// Email modal after commit
+function openEmailModalAfterCommit(data, commit) {
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'fixed';
+  wrapper.style.inset = '0';
+  wrapper.style.background = 'rgba(0,0,0,0.55)';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.zIndex = '9999';
+
+  const panel = document.createElement('div');
+  panel.style.background = '#fff';
+  panel.style.width = '92%';
+  panel.style.maxWidth = '600px';
+  panel.style.borderRadius = '12px';
+  panel.style.padding = '20px';
+
+  const emails = Array.isArray(data.Emails) ? data.Emails : [];
+  panel.innerHTML = `
+    <h2 style="margin-top:0;">Send Progress Email?</h2>
+    <p class="dates">A commit was saved. Would you like to email a progress update?</p>
+    <div style="margin:10px 0;">
+      ${
+        emails.length
+          ? `<label class="dates">Select recipient(s):</label>
+             <div id="email-picks" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
+               ${emails.map(e => `<label class="badge2"><input type="checkbox" value="${e}" style="margin-right:6px;">${e}</label>`).join("")}
+               <label class="badge2"><input type="checkbox" value="__ALL__" style="margin-right:6px;">Both</label>
+             </div>`
+          : `<p class="dates" style="color:#a00;">No emails saved for this project.</p>`
+      }
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button id="no-email" class="btn badge2">No</button>
+      <button id="send-email" class="btn-success btn">Send</button>
+    </div>
+  `;
+  wrapper.appendChild(panel);
+  document.body.appendChild(wrapper);
+
+  panel.querySelector('#no-email').addEventListener('click', () => {
+    document.body.removeChild(wrapper);
+  });
+
+  panel.querySelector('#send-email').addEventListener('click', async () => {
+    try {
+      const picks = Array.from(panel.querySelectorAll('#email-picks input[type="checkbox"]:checked')).map(i => i.value);
+      let recipients = [];
+      if (picks.includes('__ALL__')) recipients = emails;
+      else recipients = picks;
+
+      if (!recipients.length) {
+        alert("⚠️ Select at least one recipient.");
+        return;
+      }
+
+      if (window.emailjs && emailjs.send) {
+  for (const to of recipients) {
+    await emailjs.send("service_yekq70e", "template_8in927p", {
+      to_email: to,
+      project_name: data.ProjectName || "",
+      status: projectData.Status || "",
+      percentage: projectData.Percentage || 0,
+      commit_summary: JSON.stringify(commit, null, 2)
+    });
+  }
+  alert("✅ Progress email sent.");
+} else {
+  alert("⚠️ EmailJS not loaded. Make sure the script + init() are included.");
+}
+      document.body.removeChild(wrapper);
+    } catch (e) {
+      alert("❌ Email send failed: " + (e?.message || e));
+    }
+  });
+}
+
+// ---- Leave page guard ----
+window.addEventListener('beforeunload', (e) => {
+  if (unsaved) {
+    e.preventDefault();
+    e.returnValue = "Project not saved";
+    return "Project not saved";
+  }
+});
+
+// ---- Loader & bootstrap ----
+async function loadProject() {
+  let found = null;
+  if (folderId && projectId) {
+    found = await findProjectByFolderAndId(folderId, projectId);
+  }
+  if (!found && projectName) {
+    found = await findProjectByName(projectName);
+  }
+  if (!found) {
+    document.body.innerHTML = "<h2>❌ Project not found</h2>";
+    return;
+  }
+
+  projectPointer = makePointerForFound(found);
+
+  const snap = await get(projectPointer.projectRef);
+  projectData = snap.exists() ? snap.val() : {};
+
+  // compute committed extension sum from commits
+  await loadCommittedExtensions(projectPointer.commitsRef);
+
+  // Render
+  document.getElementById("project-title").innerText = projectData.ProjectName || "";
+  displayTaskInfo(projectData);
+}
+
+// initial onload
+window.onload = () => {
+  loadProject();
+  // removed components system per your instruction
+};
+
+// (Optional) expose a no-op to keep your existing onclick in markup if needed
+window.handleCompletePayment = () => {
+  // If your markup still calls this, redirect to staged payment logic
+  const btn = document.getElementById('complete-payment-btn');
+  if (btn) btn.click();
+};
+</script>
+
+
+
+
+<style>
+/* ---------- THEME ---------- */
+:root {
+  --blue: #4472A6;
+  --navy: #0E2A47;
+  --white: #ffffff;
+  --gray: #2F3E50;
+  --light-gray: #f5f7fa;
+  --accent: #A66944;
+  --success: #3BA55D;
+  --warning: #F0A500;
+  --danger: #D64545;
+  --radius: 14px;
+  --shadow: 0 8px 26px rgba(0,0,0,0.08);
+}
+
+/* ---------- GLOBAL ---------- */
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background-color: var(--blue);
+  margin: 0;
+  padding: 10px;
+  color: var(--gray);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+padding-bottom: 100px;
+}
+
+/* ---------- CARD CONTAINER ---------- */
+.container{
+  background: var(--white);
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 900px;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+margin-bottom: 20px;
+}
+.container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.12);
+}
+
+.container1{
+  background: rgba(68, 114, 166, 0.1)
+; /* slightly more opaque */
+  backdrop-filter: blur(70px); /* increased blur effect */
+  padding: 20px; /* increased padding for a more spacious feel */
+  border-radius: var(--radius);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* more pronounced shadow */
+border-left: 5px solid #4472A6;
+  width: 100%;
+  max-width: 900px;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 30px;
+}
+
+.container2{
+display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: #fff; /* white background */
+  border-radius: 10px;
+  border: 1px solid #ddd; /* border outline */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- BADGE ---------- */
+.badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--light-gray);
+  border-radius: 30px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 20px;
+  transition: background 0.3s;
+}
+.badge:hover {
+  background: #ebeff5;
+}
+
+/* ---------- GRID LAYOUT ---------- */
+.grid-top {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 25px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ---------- UPLOAD BOX / LOGO ---------- */
+.upload-box {
+  border: 2px solid var(--blue);
+  border-radius: 10px;
+  height: 160px;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f9fbfd;
+  transition: border 0.3s;
+}
+.upload-box:hover {
+  border-color: var(--accent);
+}
+.upload-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- HEADINGS ---------- */
+h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--navy);
+      border-left: 5px solid var(--accent);
+      
+}
+
+nav.main-nav{
+      position:fixed;
+      z-index:1200;
+      left:41%;
+      transform:translateX(-50%);
+      width:87%;
+      max-width:var(--max-width);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 22px;
+      align-items:center;
+      top:14px;
+      background-color: rgba(14, 42, 71, 0.6)
+;
+      border-radius:30px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 30px rgba(2,6,23,0.35);
+      border: 1px solid rgba(255,255,255, 0.5);
+      margin:0 60px 0 60px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;font-weight:800;
+      letter-spacing:0.6px;
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+    .logo-mark{
+      width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--white), rgba(255,255,255,0.85));
+      color:var(--dark); font-weight:800; font-size:20px;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+
+
+    }
+
+
+h6 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--gray);
+  font-size: 14px;
+}
+
+/* ---------- INFO ROWS ---------- */
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 5px 0;
+}
+.info-row b {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+/* ---------- PROJECT DETAILS ---------- */
+.details p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+.details b {
+  color: var(--navy);
+}
+
+/* ---------- STATUS COLORS ---------- */
+.status-success { color: var(--success); font-weight: bold; }
+.status-warning { color: var(--warning); font-weight: bold; }
+.status-danger  { color: var(--danger); font-weight: bold; }
+
+
+  .btn {
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+
+    .btn-success {
+  
+  margin-left: auto;
+  display: block;
+  width: fit-content;
+
+}
+
+    .btn-success:hover { background: var(--accent-dark); }
+
+.badge2{display:inline-flex;align-items:center;gap:6px;background:#e9f2ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid #d3e6ff;
+margin-bottom: 5px;
+}
+.btn_outline{background:transparent;border:2px solid #102c48;color:var(--accent); }
+
+.btn_subtle{background:rgba(255,255,255,.3);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.progress{
+display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.progress1{
+display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.badge3 {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--light-gray);
+  border-radius: 30px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0px;
+  transition: background 0.3s;
+  width: 60%;
+}
+.b3{
+margin-bottom: 0;
+}
+label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--navy);
+    } 
+.dates{
+color: var(--blue);
+  font-weight: 600;
+  font-size: 13px;
+}
+.progress-bar{
+      height:9px; background: gray; border-radius:999px; border:1px solid var(--border); overflow:hidden;
+    }
+    .progress-bar span{
+      display:block; height:100%; width:0%;
+      background:linear-gradient(90deg, var(--brand), var(--brand-2));
+      transition:width .3s ease;
+    }
+</style>
+
+
+
+</head>
+<body>
+
+  <div id="project-info">
+<h1 id="project-title"></h1>
+  
+
+
+<h2 style="align-text: center; justify-item: center; align-item: center; font-size: 100px; top: 50vh;"><i class="fa fa-spinner fa-spin"></i></h2>
+</div>
+
+
+
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+       
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Editable Email Template</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.7"/>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    /* Highlight editable regions when hovered */
+    [contenteditable="true"]:hover {
+      outline: 1px dashed #4A73A6;
+      cursor: text;
+    }
+    img.editable-image {
+      cursor: pointer;
+      outline: 2px dashed transparent;
+    }
+    img.editable-image:hover {
+      outline: 2px dashed #4A73A6;
+    }
+    #doneBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4A73A6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+    #doneBtn:hover {
+      background: #3b5d87;
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background:#F4F7FB;">
+
+  <!-- Your email template (unchanged, just enhanced with editable functionality) -->
+  <div style="display:none; overflow:hidden; line-height:1px; opacity:0; max-height:0; max-width:0;">
+    Please verify the discovery notes and case study we prepared for your project.
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#4A73A6;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%; max-width:600px;">
+          <tr>
+            <td align="left" style="padding:16px 20px; background:#4A73A6; border-radius:8px 8px 0 0;">
+              <!-- Editable logo or header image can go here -->
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#ffffff; padding:32px 28px; border-radius:0 0 8px 8px;">
+              <h1 contenteditable="true" style="margin:0 0 12px 0; font-family:Arial, Helvetica, sans-serif; font-size:22px; line-height:28px; color:#233045;">
+                Ongoing Project News — Fact-Finding & Case Study Verification
+              </h1>
+              <p contenteditable="true" style="margin:0 0 18px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#6B7C93;">
+                Please verify the discovery notes and case study we prepared for your project.
+              </p>
+              <p contenteditable="true" style="margin:0 0 14px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#233045;">
+                We’ve summarized our fact-finding and drafted a short case study to align on goals, risks, and success metrics.
+              </p>
+
+              <ul style="padding-left:18px; margin:0 0 14px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#233045;">
+                <li contenteditable="true" style="margin-bottom:8px;">Review discovery notes: <strong>{{notes_link}}</strong></li>
+                <li contenteditable="true" style="margin-bottom:8px;">Confirm business objectives & KPIs</li>
+                <li contenteditable="true" style="margin-bottom:8px;">Flag any inaccuracies or missing stakeholders</li>
+                <li contenteditable="true" style="margin-bottom:8px;">Approve to proceed to design phase</li>
+              </ul>
+
+              <p contenteditable="true" style="margin:0 0 14px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#233045;">
+                Reply with your sign-off or comments by <strong>{{due_date}}</strong> to keep timelines on track.
+              </p>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+                <tr>
+                  <td align="center" bgcolor="#0F2A45" style="border-radius:6px;">
+                    <a href="{{notes_link}}" class="editable-link" style="display:inline-block; padding:12px 18px; font-family:Arial, Helvetica, sans-serif; font-size:14px; color:#ffffff; text-decoration:none; font-weight:bold;">
+                      Review & Approve
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <hr style="border:none; border-top:1px solid #E5ECF6; margin:28px 0;">
+              <p contenteditable="true" style="margin:0; font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:18px; color:#6B7C93;">
+                AVANTI • Design, Develop, Evolve<br>
+                You’re receiving this because you’re an Avanti client or partner. 
+                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline;">Manage preferences</a> · 
+                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline;">Unsubscribe</a>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:14px 10px; color:#DCE6F3; font-family:Arial, Helvetica, sans-serif; font-size:11px;">
+              © 2025 Avanti. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Done button -->
+  <button id="doneBtn">Done</button>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-user"></i>
+  </div>
+
+  <script>
+    // Make images editable (URL change on click)
+    document.querySelectorAll("img").forEach(img => {
+      img.classList.add("editable-image");
+      img.addEventListener("click", () => {
+        const newUrl = prompt("Enter the image URL:", img.src);
+        if (newUrl) img.src = newUrl;
+      });
+    });
+
+    // Make links editable (URL change on click + text can be edited)
+    document.querySelectorAll("a.editable-link").forEach(a => {
+      a.setAttribute("contenteditable", "true");
+      a.addEventListener("click", (e) => {
+        e.preventDefault(); // prevent navigation
+        const newHref = prompt("Enter the link URL:", a.href);
+        if (newHref) a.href = newHref;
+      });
+    });
+
+    // Save template on Done
+    document.getElementById("doneBtn").addEventListener("click", () => {
+      const htmlContent = document.body.innerHTML;
+      const key = "template_" + Date.now();
+      localStorage.setItem(key, htmlContent);
+      window.location.href = "send-email-file.html?key=" + key;
+    });
+  </script>
+
+</body>
+</html>

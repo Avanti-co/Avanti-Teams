@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Avanti Analytics</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    :root{
+      --brand:#3c6ea6;      /* Avanti blue */
+      --brand-ink:#0f2e4b;  /* deep navy accent */
+      --ink:#0b1721;
+      --muted:#5b6b7a;
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --ring:rgba(60,110,166,.15);
+      --good:#11a36a;
+      --warn:#e6a100;
+      --bad:#e5524a;
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#eef3fb 0%, #fff 60%); padding-bottom: 150px;
+    }
+    header{
+      position:sticky; top:85px; z-index:9;
+      background:#fff; border-bottom:1px solid #e6ecf3;
+      display:flex; align-items:center; gap:18px;
+      padding:10px 18px;
+    }
+    header img{height:34px}
+    header h1{font-size:18px; margin:0; font-weight:800; letter-spacing:.2px; color:var(--brand-ink)}
+    .tabs{display:flex; margin-left:auto; gap:6px}
+    .tabs button{
+      border:0; background:transparent; padding:10px 12px; border-radius:10px;
+      font-weight:600; color:var(--muted); cursor:pointer;
+    }
+    .tabs button.active{color:#fff; background:var(--brand)}
+    main{padding:20px; max-width:1200px; margin-inline:auto}
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: repeat(12, minmax(0,1fr));
+    }
+    .card{
+      background:var(--card);
+      border:1px solid #e6ecf3; border-radius:14px;
+      padding:16px;
+      box-shadow:0 6px 20px -12px var(--ring);
+    }
+    .card h3{margin:0 0 10px 0; font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted)}
+    .kpi{display:flex; align-items:baseline; gap:10px}
+    .kpi .big{font-size:34px; font-weight:800}
+    .kpi .sub{font-size:12px; color:var(--muted)}
+    .span-3{grid-column: span 3}
+    .span-4{grid-column: span 4}
+    .span-6{grid-column: span 6}
+    .span-8{grid-column: span 8}
+    .span-9{grid-column: span 9}
+    .span-12{grid-column: span 12}
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700}
+    .pill.good{background:#e8f7f0; color:var(--good)}
+    .pill.bad{background:#fdeceb; color:var(--bad)}
+    .list{display:grid; gap:10px}
+    .proj{
+      display:flex; align-items:center; gap:12px; padding:10px; border:1px solid #edf1f6; border-radius:12px;
+      background:#fbfdff;
+    }
+    .proj .title{font-weight:700}
+    .proj .meta{font-size:12px; color:var(--muted)}
+    .hidden{display:none !important}
+    .report{
+      white-space:pre-wrap; line-height:1.55; font-size:15px;
+    }
+    footer{color:var(--muted); font-size:12px; text-align:center; padding:14px}
+    .legend{font-size:12px; color:var(--muted)}
+    .chip{display:inline-block; padding:2px 8px; background:#eff5fb; color:#436b91; font-weight:700; border-radius:999px; font-size:12px}
+
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    /* Plus button container */
+    .plus-container {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .plus-btn {
+      width: 80px;
+      height: 80px;
+      background: #007bff; /* 🔵 Blue button */
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 28px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 200;
+      transition: transform 0.3s ease;
+    }
+
+    /* Options above */
+    .options {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      pointer-events: none;
+    }
+
+    .option {
+      width: 85px;
+      height: 85px;
+      background: #444;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      opacity: 0;
+      transform: translateY(40px) scale(0.5) rotate(0deg);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+margin-bottom: 25px;
+    }
+
+    .plus-container.active .option {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1) rotate(360deg);
+    }
+
+    /* File */
+    .plus-container.active .option:nth-child(1) {
+      transition-delay: 0.05s;
+    }
+
+    /* Folder */
+    .plus-container.active .option:nth-child(2) {
+      transition-delay: 0.1s;
+    }
+
+
+  </style>
+</head>
+<body style="padding-bottom: 500px;">
+  <div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+  <header>
+    <img src="assets/avanti-logo.png" alt="Avanti logo" onerror="this.style.display='none'">
+    <h1>Analytics</h1>
+    <div class="tabs">
+      <button class="active" data-tab="analytics">Analytics</button>
+      <button data-tab="statistics">Statistics</button>
+      <button data-tab="reports">Reports</button>
+    </div>
+  </header>
+
+  <main style="margin-top: 100px;">
+    <!-- ANALYTICS -->
+    <section id="analytics" class="tab">
+      <div class="grid">
+        <!-- KPIs -->
+        <div class="card span-3"><h3>Total Projects</h3><div class="kpi"><div class="big" id="kpi-total">–</div></div></div>
+        <div class="card span-3"><h3 style="margin-left: -12px;">Independent Projects</h3><div class="kpi"><div class="big" id="kpi-ind">–</div></div></div>
+        <div class="card span-3"><h3>Folder Projects</h3><div class="kpi"><div class="big" id="kpi-fold">–</div></div></div>
+        <div class="card span-3"><h3>Folders</h3><div class="kpi"><div class="big" id="kpi-folders">–</div></div></div>
+
+        <!-- Status distribution -->
+        <div class="card span-8">
+          <h3>Status distribution</h3>
+          <canvas id="statusChart" height="140"></canvas>
+          <div class="legend">Fact Finding • Design • Development • Testing & Debugging • Implementation • Complete</div>
+        </div>
+
+        <!-- Payments -->
+        <div class="card span-4">
+          <h3>Payment status</h3>
+          <canvas id="paymentPie" height="140"></canvas>
+        </div>
+
+        <!-- Pending payment cards -->
+        <div class="card span-12">
+          <h3>Projects with Pending Payment</h3>
+          <div id="pendingList" class="list"></div>
+        </div>
+
+        <!-- Top categories -->
+        <div class="card span-12">
+          <h3>Top 5 categories</h3>
+          <canvas id="topCats" height="160"></canvas>
+        </div>
+<br>
+        <!-- Top budgets -->
+        <div class="card span-12">
+          <h3>Top 10 high-paying projects (This Year / This Month)</h3>
+          <canvas id="topBudget" height="160"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATISTICS -->
+    <section id="statistics" class="tab hidden">
+      <div class="grid">
+        <div class="card span-3"><h3>Companies</h3><div class="kpi"><div class="big" id="kpi-company">–</div></div></div>
+        <div class="card span-3"><h3>Individuals</h3><div class="kpi"><div class="big" id="kpi-individual">–</div></div></div>
+        <div class="card span-3"><h3>This week</h3><div class="kpi"><div class="big" id="kpi-week">–</div><div class="sub">starts in last 7 days</div></div></div>
+        <div class="card span-3"><h3>Last 2 weeks</h3><div class="kpi"><div class="big" id="kpi-2weeks">–</div></div></div>
+
+        <div class="card span-3"><h3>This month</h3><div class="kpi"><div class="big" id="kpi-month">–</div></div></div>
+        <div class="card span-3"><h3>Last 2 months</h3><div class="kpi"><div class="big" id="kpi-2months">–</div></div></div>
+        <div class="card span-3"><h3>Avg Budget</h3><div class="kpi"><div class="big" id="kpi-avg-budget">–</div><div class="sub" id="budget-currency"></div></div></div>
+        <div class="card span-3"><h3>Prepaid</h3><div class="kpi"><div class="big" id="kpi-prepaid">–</div><div class="sub">true/false flag</div></div></div>
+
+        <div class="card span-12">
+          <h3>Status → Count</h3>
+          <div id="statusTable" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="reports" class="tab hidden">
+      <div class="grid">
+        <div class="card span-3">
+          <h3>Completion Ratio</h3>
+          <canvas id="completeRatio" height="160"></canvas>
+        </div>
+        <div class="card span-9">
+          <h3>Priority by Size • Payment • Status</h3>
+          <canvas id="priorityBar" height="160"></canvas>
+          <div class="legend">Higher score = higher urgency (size + payment + status stage weighting)</div>
+        </div>
+        <div class="card span-12">
+          <h3>Schedule of the Week</h3>
+          <div id="schedule" class="list"></div>
+        </div>
+        <div class="card span-12">
+          <h3>Week Extensions & Reasons</h3>
+          <div id="extensions" class="list"></div>
+        </div>
+        <div class="card span-12">
+          <h3>Executive Report</h3>
+          <div id="execReport" class="report"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+  <footer>© <span id="year"></span> Avanti • Design, Develop, Evolve</footer>
+
+<script>
+/* ----------------------------- CONFIG ----------------------------- */
+
+// 1) Put your Firebase config here
+const firebaseConfig = {
+  apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+  authDomain: "users-66be4.firebaseapp.com",
+  databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+  projectId: "users-66be4",
+  storageBucket: "users-66be4.appspot.com",
+  messagingSenderId: "776585122050",
+  appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+};
+
+// 2) Data roots (change only if your paths differ)
+const INDEPENDENT_ROOT = "project_files";     // independent projects
+const FOLDERS_ROOT     = "folders";           // folders/{folderId}/projects/{projectId}
+
+/* ---------------------------- APP STATE --------------------------- */
+
+const StatusOrder = [
+  "Fact Finding", "Design", "Development", "Testing & Debugging", "Implementation", "Complete"
+];
+
+const SizeWeight = { Small: 1, Medium: 2, Large: 3 };
+const PaymentWeight = { Pending: 2, "Complete": 0, Completed: 0 }; // handle 'Complete' or 'Completed'
+const StatusWeight = {
+  "Fact Finding": 3, "Design": 3, "Development": 2, "Testing & Debugging": 2, "Implementation": 1, "Complete": 0
+};
+
+let charts = {};
+let MODEL = {
+  folders: [],               // {id, meta, projects:[...]}
+  independent: [],           // [{...project}]
+  unified: []                // [{...project, source:'independent'|'folder', uid:'id' or 'folderId/projectId'}]
+};
+
+/* ---------------------------- UTILITIES --------------------------- */
+
+const toNumber = (v) => {
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  const s = String(v).replace(/[^0-9.\-]/g,'').trim();
+  const n = parseFloat(s); return Number.isFinite(n) ? n : 0;
+};
+
+function parseStartDate(p){ // tries StartDate (YYYY-MM-DD), then createdAt (ms), then numeric id
+  if (p.StartDate) {
+    const d = new Date(p.StartDate);
+    if(!isNaN(d)) return d;
+  }
+  if (p.createdAt) {
+    const d = new Date(Number(p.createdAt));
+    if(!isNaN(d)) return d;
+  }
+  if (p.id && /^\d{12,}$/.test(String(p.id))) {
+    const d = new Date(Number(p.id));
+    if(!isNaN(d)) return d;
+  }
+  return null;
+}
+
+function parseDurationDays(p){ // accepts "2 weeks", "10 days", number etc.
+  const raw = p.Duration ?? p.duration ?? "";
+  if (typeof raw === "number") return raw;
+  const s = String(raw).trim().toLowerCase();
+  const m = s.match(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months)?/i);
+  if(!m) return 0;
+  const n = parseFloat(m[1]);
+  const unit = (m[2]||"days").toLowerCase();
+  if(unit.startsWith("week")) return Math.round(n*7);
+  if(unit.startsWith("month")) return Math.round(n*30);
+  return Math.round(n);
+}
+
+function sumDayExtensions(p){
+  // expect p.Commits.{commitId}.extensions = [{amount,reason,timestamp}]
+  let total = 0;
+  const commits = p.Commits || p.commits || {};
+  Object.values(commits).forEach(c=>{
+    const ext = (c.extensions || c.Extensions || {});
+    // ext can be array or keyed object starting at 0
+    if (Array.isArray(ext)) {
+      ext.forEach(e=> total += toNumber(e?.amount));
+    } else {
+      Object.values(ext).forEach(e=> total += toNumber(e?.amount));
+    }
+  });
+  return total;
+}
+
+function getDueDate(p){
+  const start = parseStartDate(p);
+  if(!start) return null;
+  const durDays = parseDurationDays(p);
+  const extra = sumDayExtensions(p);
+  const due = new Date(start);
+  due.setDate(due.getDate() + durDays + extra);
+  return due;
+}
+
+function fmtDate(d){
+  if(!d) return "—";
+  return d.toISOString().slice(0,10);
+}
+
+function monthKey(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+/* ---------------------------- DATA LOAD --------------------------- */
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+async function once(refPath){
+  const snap = await db.ref(refPath).get();
+  return snap.exists() ? snap.val() : null;
+}
+
+async function loadData(){
+  // 1) Independent
+  const rawInd = await once(INDEPENDENT_ROOT);
+  const independent = [];
+  if (rawInd && typeof rawInd === "object") {
+    Object.entries(rawInd).forEach(([k,v])=>{
+      // some datasets key by projectId (timestamp), others by name
+      if (v && typeof v === "object") {
+        independent.push({...v, id: v.id || k, _id: k, source:"independent"});
+      }
+    });
+  }
+
+  // 2) Folders with nested projects
+  const rawFolders = await once(FOLDERS_ROOT);
+  const folders = [];
+  if (rawFolders && typeof rawFolders === "object") {
+    Object.entries(rawFolders).forEach(([folderId,meta])=>{
+      const projectsNode = (meta && meta.projects) || {};
+      const projects = [];
+      Object.entries(projectsNode).forEach(([pid,pval])=>{
+        if (pval && typeof pval === "object") {
+          projects.push({...pval, id: pval.id || pid, _id: pid, folderId, source:"folder"});
+        }
+      });
+      const {projects:_, ...folderMeta} = meta || {};
+      folders.push({id:folderId, meta:folderMeta, projects});
+    });
+  }
+
+  // 3) Unified
+  const folderProjects = folders.flatMap(f => f.projects.map(p => ({...p, uid:`${f.id}/${p._id}`})));
+  const independentProjects = independent.map(p => ({...p, uid:String(p._id)}));
+  const unified = [...independentProjects, ...folderProjects];
+
+  MODEL = { folders, independent, unified };
+  renderAll();
+}
+
+/* ------------------------------ RENDER ---------------------------- */
+
+function setKPI(id, val){ document.getElementById(id).textContent = val; }
+
+function renderKPIs(){
+  const total = MODEL.unified.length;
+  const ind   = MODEL.independent.length;
+  const foldP = MODEL.folders.reduce((a,f)=> a + f.projects.length, 0);
+  const folds = MODEL.folders.length;
+  setKPI("kpi-total", total);
+  setKPI("kpi-ind", ind);
+  setKPI("kpi-fold", foldP);
+  setKPI("kpi-folders", folds);
+}
+
+function computeStatusCounts(){
+  const counts = {};
+  StatusOrder.forEach(s=> counts[s]=0);
+  MODEL.unified.forEach(p=>{
+    const s = (p.Status || p.status || "").trim();
+    const norm = s.toLowerCase().includes("test") ? "Testing & Debugging"
+               : s.toLowerCase().includes("fact") ? "Fact Finding"
+               : s.toLowerCase().includes("design") ? "Design"
+               : s.toLowerCase().includes("develop") ? "Development"
+               : s.toLowerCase().includes("imple") ? "Implementation"
+               : s.toLowerCase().includes("compl") ? "Complete"
+               : s || "Fact Finding";
+    counts[norm] = (counts[norm] || 0) + 1;
+  });
+  return counts;
+}
+
+function renderStatusChart(){
+  const counts = computeStatusCounts();
+  const data = StatusOrder.map(s=> counts[s]||0);
+  charts.status?.destroy();
+  charts.status = new Chart(document.getElementById("statusChart"),{
+    type:"bar",
+    data:{labels:StatusOrder, datasets:[{label:"Projects", data}]},
+    options:{responsive:true, plugins:{legend:{display:false}}}
+  });
+  // Statistics tab table
+  const table = document.getElementById("statusTable");
+  table.innerHTML = "";
+  StatusOrder.forEach(s=>{
+    const li = document.createElement("div");
+    li.className = "proj";
+    li.innerHTML = `<div class="title">${s}</div><div class="meta"> | ${counts[s]||0} projects</div>`;
+    table.appendChild(li);
+  });
+}
+
+function renderPayments(){
+  let pending=0, complete=0;
+  const pendList = document.getElementById("pendingList");
+  pendList.innerHTML = "";
+  MODEL.unified.forEach(p=>{
+    const pay = (p.PaymentStatus || p.paymentStatus || "").toLowerCase();
+    if (pay.startsWith("pend")) pending++;
+    else complete++;
+    if (pay.startsWith("pend")) {
+      const li = document.createElement("div");
+      const label = p.source==='folder' ? `${p.folderId}/${p.ProjectName}` : `${p.ProjectName||p.id||p._id}`;
+      li.className="proj";
+      li.innerHTML = `
+        <div class="title">${label}</div>
+
+        <div class="meta">Budget: ${p.Budget ?? '—'} • Client: ${p.ClientName || p.CompanyName}</div>
+        <span class="pill bad">PENDING</span>`;
+      pendList.appendChild(li);
+    }
+  });
+  charts.pay?.destroy();
+  charts.pay = new Chart(document.getElementById("paymentPie"),{
+    type:"doughnut",
+    data:{labels:["Pending","Complete"], datasets:[{data:[pending,complete]}]},
+    options:{plugins:{legend:{position:"bottom"}}}
+  });
+}
+
+function renderTopCategories(){
+  const freq = {};
+  MODEL.unified.forEach(p=>{
+    const c = (p.Category || p.category || "Unspecified").trim();
+    if(!c) return;
+    freq[c] = (freq[c]||0) + 1;
+  });
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  charts.cats?.destroy();
+  charts.cats = new Chart(document.getElementById("topCats"),{
+    type:"bar",
+    data:{labels:top.map(x=>x[0]), datasets:[{label:"Count", data:top.map(x=>x[1])}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+function renderTopBudget(){
+  // group by year & month based on StartDate (fallback: createdAt)
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  const thisMonthKey = monthKey(now);
+
+  const annotate = MODEL.unified.map(p=>{
+    const start = parseStartDate(p) || new Date(0);
+    return { p, budget: toNumber(p.Budget), month: monthKey(start), year: start.getFullYear() };
+  });
+
+  const yearTop = annotate.filter(x=>x.year===thisYear)
+    .sort((a,b)=>b.budget-a.budget).slice(0,10);
+
+  const monthTop = annotate.filter(x=>x.month===thisMonthKey)
+    .sort((a,b)=>b.budget-a.budget).slice(0,10);
+
+  const labels = Array.from(new Set([...yearTop,...monthTop].map(x=>x.p.source==='folder' ? `${x.p.folderId}/${x.p.ProjectName}` : (x.p.ProjectName||x.p.id||x.p._id))));
+  const dataYear = labels.map(l=>{
+    const x = yearTop.find(t => (t.p.source==='folder'? `${t.p.folderId}/${t.p.ProjectName}` : (t.p.ProjectName||t.p.id||t.p._id))===l);
+    return x ? x.budget : 0;
+  });
+  const dataMonth = labels.map(l=>{
+    const x = monthTop.find(t => (t.p.source==='folder'? `${t.p.folderId}/${t.p.ProjectName}` : (t.p.ProjectName||t.p.id||t.p._id))===l);
+    return x ? x.budget : 0;
+  });
+
+  charts.budget?.destroy();
+  charts.budget = new Chart(document.getElementById("topBudget"),{
+    type:"bar",
+    data:{labels, datasets:[
+      {label:`Top ${thisYear}`, data:dataYear},
+      {label:"Top this month", data:dataMonth}
+    ]},
+    options:{responsive:true}
+  });
+}
+
+function renderStatistics(){
+  const total = MODEL.unified.length;
+  const company = MODEL.unified.filter(p => (p.For||p.for||"").toLowerCase().startsWith("comp")).length;
+  const individual = MODEL.unified.filter(p => (p.For||p.for||"").toLowerCase().startsWith("indiv")).length;
+
+  const now = new Date();
+  const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
+  const twoWeeks = new Date(now); twoWeeks.setDate(now.getDate()-14);
+  const monthAgo = new Date(now); monthAgo.setMonth(now.getMonth()-1);
+  const twoMonths = new Date(now); twoMonths.setMonth(now.getMonth()-2);
+
+  const byStart = (d)=> (parseStartDate(d) || new Date(0));
+  const inRange = (p,from)=> byStart(p) >= from;
+
+  const thisWeek = MODEL.unified.filter(p=> inRange(p,weekAgo)).length;
+  const last2Weeks = MODEL.unified.filter(p=> inRange(p,twoWeeks)).length;
+  const thisMonth = MODEL.unified.filter(p=> inRange(p,monthAgo)).length;
+  const last2Months = MODEL.unified.filter(p=> inRange(p,twoMonths)).length;
+
+  const budgets = MODEL.unified.map(p=> toNumber(p.Budget)).filter(n=>n>0);
+  const avgBudget = budgets.length ? Math.round(budgets.reduce((a,b)=>a+b,0)/budgets.length) : 0;
+  const prepaidCount = MODEL.unified.filter(p=> p.Prepaid===true).length;
+
+  setKPI("kpi-company", company);
+  setKPI("kpi-individual", individual);
+  setKPI("kpi-week", thisWeek);
+  setKPI("kpi-2weeks", last2Weeks);
+  setKPI("kpi-month", thisMonth);
+  setKPI("kpi-2months", last2Months);
+  setKPI("kpi-avg-budget", avgBudget);
+  setKPI("kpi-prepaid", prepaidCount);
+}
+
+function renderCompletionRatio(){
+  const complete = MODEL.unified.filter(p => (p.Status||"").toLowerCase().startsWith("compl")).length;
+  const incomplete = MODEL.unified.length - complete;
+  charts.ratio?.destroy();
+  charts.ratio = new Chart(document.getElementById("completeRatio"),{
+    type:"pie",
+    data:{labels:["Complete","Incomplete"], datasets:[{data:[complete,incomplete]}]},
+    options:{plugins:{legend:{position:"bottom"}}}
+  });
+}
+
+function projectPriorityScore(p){
+  const size = SizeWeight[(p.Size||"").trim()] ?? 2;
+  const pay  = PaymentWeight[(p.PaymentStatus||"").trim()] ?? 0;
+  const stat = StatusWeight[(p.Status||"").trim()] ?? 1;
+  return size + pay + stat;
+}
+
+function renderPriority(){
+  const top = MODEL.unified
+    .map(p=>({p,score:projectPriorityScore(p)}))
+    .sort((a,b)=>b.score-a.score).slice(0,12);
+
+  charts.priority?.destroy();
+  charts.priority = new Chart(document.getElementById("priorityBar"),{
+    type:"bar",
+    data:{labels:top.map(x=> x.p.source==='folder' ? `${x.p.folderId}/${x.p.ProjectName}` : (x.p.ProjectName||x.p.id||x.p._id)),
+          datasets:[{label:"Priority score", data:top.map(x=>x.score)}]},
+    options:{plugins:{legend:{display:false}}}
+  });
+}
+
+function renderScheduleOfWeek(){
+  const box = document.getElementById("schedule");
+  box.innerHTML = "";
+  const now = new Date();
+  const inThisWeek = (p)=>{
+    const s = parseStartDate(p);
+    if(!s) return false;
+    const weekStart = new Date(now); weekStart.setDate(now.getDate()-7);
+    return s >= weekStart;
+  };
+
+  const items = MODEL.unified
+    .map(p=>{
+      const due = getDueDate(p);
+      const daysLeft = due ? Math.ceil((due - now)/(1000*60*60*24)) : null;
+      const risk = (daysLeft!==null && daysLeft<0) ? "Overdue"
+                 : (daysLeft!==null && daysLeft<=2) ? "At Risk" : "On Track";
+      const label = p.source==='folder' ? `${p.folderId}/${p.ProjectName}` : (p.ProjectName||p.id||p._id);
+      return {p,label,due,daysLeft,risk,score:projectPriorityScore(p)};
+    })
+    .sort((a,b)=> b.score-a.score || (a.daysLeft??9999)-(b.daysLeft??9999));
+
+  items.slice(0,15).forEach(x=>{
+    const item = document.createElement("div");
+    item.className="proj";
+    const riskPill = `<span class="pill ${x.risk==='Overdue'?'bad':(x.risk==='At Risk'?'bad':'good')}">${x.risk}</span>`;
+    item.innerHTML = `
+      <div class="title">${x.label}</div>
+      <div class="meta">Status: ${x.p.Status||'—'} • Size: ${x.p.Size||'—'} • Due: ${fmtDate(x.due)} • ${x.daysLeft!==null? `${x.daysLeft} days left` : 'no due date'}</div>
+      ${riskPill}
+      <span class="chip">Priority ${x.score}</span>`;
+    box.appendChild(item);
+  });
+}
+
+function renderExtensionsReport(){
+  const box = document.getElementById("extensions");
+  box.innerHTML = "";
+  const rows = MODEL.unified.map(p=>{
+    const totalExt = sumDayExtensions(p);
+    if (totalExt<=0) return null;
+    const label = p.source==='folder' ? `${p.folderId}/${p.ProjectName}` : (p.ProjectName||p.id||p._id);
+    const reasons = [];
+    const commits = p.Commits || {};
+    Object.values(commits).forEach(c=>{
+      const ext = c.extensions || {};
+      const arr = Array.isArray(ext) ? ext : Object.values(ext);
+      arr.forEach(e=>{
+        if (e && e.reason) reasons.push(`• ${e.reason} (${e.amount}d on ${e.timestamp||'n/a'})`);
+      });
+    });
+    return {label,totalExt,reasons};
+  }).filter(Boolean).sort((a,b)=>b.totalExt-a.totalExt);
+
+  if (!rows.length){
+    const item = document.createElement("div");
+    item.className="proj";
+    item.textContent = "No day extensions recorded this week.";
+    box.appendChild(item);
+    return;
+  }
+  rows.forEach(r=>{
+    const item = document.createElement("div");
+    item.className="proj";
+    item.innerHTML = `<div class="title">${r.label}</div>
+      <div class="meta">Total extensions: ${r.totalExt} day(s)</div>
+      <div style="font-size:12px;color:var(--muted)">${r.reasons.join("<br>")}</div>`;
+    box.appendChild(item);
+  });
+}
+
+function renderExecutiveReport(){
+  const total = MODEL.unified.length;
+  const completed = MODEL.unified.filter(p=>(p.Status||"").toLowerCase().startsWith("compl")).length;
+  const pendingPay = MODEL.unified.filter(p=>(p.PaymentStatus||"").toLowerCase().startsWith("pend")).length;
+  const company = MODEL.unified.filter(p=>(p.For||"").toLowerCase().startsWith("comp")).length;
+  const indiv = MODEL.unified.filter(p=>(p.For||"").toLowerCase().startsWith("indiv")).length;
+
+  const topCat = (() => {
+    const f={}; MODEL.unified.forEach(p=>{ const c=p.Category||"Unspecified"; f[c]=(f[c]||0)+1; });
+    return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${k} (${v})`).join(", ");
+  })();
+
+  const late = MODEL.unified
+    .map(p=>({p, due:getDueDate(p)}))
+    .filter(x=>x.due && x.due < new Date());
+
+  const para = `
+This week at Avanti, we’re tracking ${total} active projects: ${completed} completed, ${total-completed} in progress.
+Payment risk remains with ${pendingPay} project(s) pending payment.
+Client mix is ${company} company vs ${indiv} individual initiatives.
+
+Category momentum: ${topCat || 'No dominant categories yet'}.
+
+Schedule outlook: ${late.length ? `${late.length} project(s) appear overdue based on start date, duration and recorded day-extensions.` : 'all projects appear on or ahead of schedule.'}
+Priority is being driven primarily by size, payment status and delivery stage; the priority board highlights the top items requiring attention.
+
+Recommendations:
+• Focus on clearing pending payments and closing items in Testing & Debugging and Implementation stages.
+• Review overdue items for potential scope adjustments or additional day-extensions where justified.
+• Maintain momentum in top categories to maximize delivery efficiency and team familiarity.
+  `.trim();
+
+  document.getElementById("execReport").textContent = para;
+}
+
+/* ----------------------------- ORCHESTRA -------------------------- */
+
+function renderAll(){
+  renderKPIs();
+  renderStatusChart();
+  renderPayments();
+  renderTopCategories();
+  renderTopBudget();
+  renderStatistics();
+  renderCompletionRatio();
+  renderPriority();
+  renderScheduleOfWeek();
+  renderExtensionsReport();
+  renderExecutiveReport();
+}
+
+/* ------------------------------ TABS ------------------------------ */
+
+document.querySelectorAll(".tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab").forEach(s=>s.classList.add("hidden"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.remove("hidden");
+  });
+});
+
+/* ----------------------------- BOOT ------------------------------- */
+
+document.getElementById("year").textContent = new Date().getFullYear();
+loadData().catch(e=>{
+  console.error(e);
+  alert("Failed to load data. Check Firebase config and databaseURL in the config.");
+});
+</script>
+
+</body>
+</html>

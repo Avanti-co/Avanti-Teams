@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>All Folders - Avanti</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+  
+  <!-- FontAwesome for icons -->
+  <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  
+ <style>
+    /* ===== BRAND THEME (Avanti) ===== */
+:root {
+  --primary: #497BBE;       /* Corporate Blue */
+  --primary-dark: #0F2E4D;  /* Deep Navy */
+  --accent: #2E9CCA;        /* Cyan accent */
+  --accent-light: #5DB7DE;  
+  --bg-gradient: linear-gradient(135deg, #0F2E4D, #497BBE);
+  --card-gradient: linear-gradient(135deg, #2A4E77, #497BBE);
+  --text-light: #ffffff;
+  --text-muted: #cbd5e1;
+  --radius: 14px;
+  --transition: 0.3s ease;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ===== BODY ===== */
+body {
+  margin: 0;
+  padding: 2rem;
+  background: #F4F7FB;
+  color: var(--text-light);
+  min-height: 100vh;
+  padding-top: 85px;
+padding-bottom: 100px;
+  
+}
+
+/* ===== SECTION HEADINGS ===== */
+h1 {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  
+  color: var(--accent-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+h1 {
+  color: var(--accent);
+}
+
+/* ===== SUMMARY ===== */
+.summary {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  padding: 1rem 1.4rem;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: white;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  animation: fadeIn 0.7s ease forwards;
+margin-top: 100px;
+}
+.summary i {
+  font-size: 1.5rem;
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+.controls input, 
+.controls select, 
+.controls button {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+.controls input, 
+.controls select {
+  background: #1e293b;
+  color: var(--text-light);
+  border: 1px solid #334155;
+}
+.controls input::placeholder { color: var(--text-muted); }
+.controls input:focus, 
+.controls select:focus {
+  border-color: var(--accent-light);
+  box-shadow: 0 0 0 2px rgba(93,183,222,0.4);
+}
+.controls button {
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.controls button:hover {
+  background: var(--accent-light);
+}
+
+/* ===== CARD CONTAINER ===== */
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+  gap: 1.2rem;
+}
+
+
+/* ===== CARDS ===== */
+:root {
+  --primary: #1e88e5;       /* blue */
+  --primary-dark: #1565c0;  /* darker blue */
+  --accent: #42a5f5;        /* lighter blue */
+  --text: #2c3e50;          /* dark grey */
+  --text-muted: #607d8b;    /* muted grey */
+  --radius: 10px;
+  --transition: all 0.3s ease;
+}
+
+/* card container */
+.card {
+  background: #ffffff;
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: var(--transition);
+  transform: translateY(0);
+  animation: fadeInUp 0.6s ease both;
+  border: 1px solid #e3f2fd; /* light blue border */
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 18px rgba(30,136,229,0.2);
+  border-color: var(--accent);
+}
+
+/* image */
+.card img {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 2px solid var(--primary);
+}
+
+/* content */
+.card-content {
+ 
+  flex: 1;
+}
+
+.card-content h4 {
+  margin: 0 0 0.4rem 0;
+  font-size: 1.6rem;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.card-content p {
+  margin: 0.2rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* buttons */
+.card-content button {
+  margin-top: 0.5rem;
+  margin-right: 0.3rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  background: var(--primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.card-content button:hover {
+  background: var(--accent);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(66,165,245,0.3);
+}
+
+.card-content button i {
+  transition: var(--transition);
+}
+
+.card-content button:hover i {
+  transform: rotate(15deg);
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 20px;
+  background: lightgray;
+  margin: 0.6rem 0;
+  overflow: hidden;
+}
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg,#3ad29f ,#6c7cff);
+  transition: width 0.6s ease-in-out;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(-10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+@keyframes fadeInUp {
+  from {opacity: 0; transform: translateY(15px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    /* Plus button container */
+    .plus-container {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .plus-btn {
+      width: 80px;
+      height: 80px;
+      background: #007bff; /* 🔵 Blue button */
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 28px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 200;
+      transition: transform 0.3s ease;
+    }
+
+    /* Options above */
+    .options {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      pointer-events: none;
+    }
+
+    .option {
+      width: 85px;
+      height: 85px;
+      background: #444;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      opacity: 0;
+      transform: translateY(40px) scale(0.5) rotate(0deg);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+margin-bottom: 25px;
+    }
+
+    .plus-container.active .option {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1) rotate(360deg);
+    }
+
+    /* File */
+    .plus-container.active .option:nth-child(1) {
+      transition-delay: 0.05s;
+    }
+
+    /* Folder */
+    .plus-container.active .option:nth-child(2) {
+      transition-delay: 0.1s;
+    }
+
+
+
+.div{
+ 
+      
+      
+     
+      width:90%;
+      max-width:var(--max-width);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 22px;
+      align-items:center;
+      top:14px;
+      background-color: rgba(14, 42, 71, 0.6)
+;
+      border-radius:12px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 30px rgba(2,6,23,0.35);
+      border: 1px solid rgba(255,255,255, 0.5);
+      
+}
+
+.badge2{display:inline-flex;align-items:center;gap:6px;background:#e9f2ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid #d3e6ff;
+margin-bottom: 5px;
+}
+/* general button base */
+.card-content button {
+  margin-top: 0.5rem;
+  margin-right: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+  color: #fff;
+}
+
+/* OPEN (primary action) */
+.card-content button.open {
+  background: var(--primary);
+}
+.card-content button.open:hover {
+  background: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* DUPLICATE */
+.card-content button.duplicate {
+  background: #6c63ff; /* purple */
+}
+.card-content button.duplicate:hover {
+  background: #574bdb;
+}
+
+/* MOVE */
+.card-content button.move {
+  background: #00b894; /* teal green */
+}
+.card-content button.move:hover {
+  background: #00997b;
+}
+
+/* DELETE */
+.card-content button.delete {
+  background: #e53935; /* red */
+}
+.card-content button.delete:hover {
+  background: #c62828;
+}
+
+/* EDIT — icon only */
+.card-content button.edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  color: var(--primary-dark);
+  padding: 6px;
+  font-size: 1rem;
+}
+.card-content button.edit:hover {
+  color: var(--accent);
+  transform: scale(1.2);
+}
+.controls {
+  
+  border: 1px solid #e0e6ed;
+  border-radius: 0px;
+  background: #fff;
+margin-left: -30px;
+margin-right: -27px;
+
+
+}
+
+/* search box */
+.search-box {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 350px;
+  background: #f7f9fc;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+}
+
+.search-box i {
+  margin-right: 0.5rem;
+  color: #0057d9;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #333;
+  outline: none;
+}
+
+.search-box input::placeholder {
+  color: #888;
+}
+
+/* filters */
+.filters {
+  display: flex;
+  gap: 0.6rem;
+}
+
+/* filter group */
+.filter {
+  display: flex;
+  align-items: center;
+  background: #f7f9fc;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+}
+
+.filter i {
+  margin-right: 0.4rem;
+  color: #0057d9;
+}
+
+/* selects */
+.filter select {
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #333;
+  outline: none;
+  cursor: pointer;
+}
+
+h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0E2A47;
+      border-left: 5px solid #A66944;
+padding: 5px;
+      
+}
+
+header {
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+header h1 {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+}
+
+.controls {
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#folderSearch {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 250px;
+}
+
+#folderFilter, #folderSort {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #3e8e41;
+}
+
+.fas {
+  margin-right: 5px;
+}
+
+  </style>
+</head>
+  <div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+<body>
+  <!-- HEADER -->
+  <header>
+  
+    <h1><i class="fas fa-folder-open"></i> All Folders</h1>
+  </header>
+  
+  <!-- CONTROLS -->
+  <div class="controls">
+    <input type="text" id="folderSearch" placeholder="Search folders...">
+    <select id="folderFilter">
+      <option value="">All</option>
+      <option value="Company">Company</option>
+      <option value="Individual">Individual</option>
+    </select>
+    <select id="folderSort">
+      <option value="az">Sort A–Z</option>
+      <option value="za">Sort Z–A</option>
+    </select>
+    <button onclick="location.href='index.html'">
+      <i class="fas fa-home"></i> Back to Home
+    </button>
+  </div>
+
+  
+  <!-- FOLDERS -->
+  <div class="card-container" id="foldersContainer"></div>
+  
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+  <!-- SCRIPT -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+      authDomain: "users-66be4.firebaseapp.com",
+      databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+      projectId: "users-66be4",
+      storageBucket: "users-66be4.appspot.com",
+      messagingSenderId: "776585122050",
+      appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    const foldersContainer = document.getElementById("foldersContainer");
+    let allFolders = [];
+    
+    function renderFolders() {
+      let filtered = [...allFolders];
+      const search = document.getElementById("folderSearch").value.toLowerCase();
+      const filter = document.getElementById("folderFilter").value;
+      const sort = document.getElementById("folderSort").value;
+      
+      if(search) filtered = filtered.filter(f => f.name.toLowerCase().includes(search));
+      if(filter) filtered = filtered.filter(f => f.for === filter);
+      if(sort==="az") filtered.sort((a,b)=> a.name.localeCompare(b.name));
+      if(sort==="za") filtered.sort((a,b)=> b.name.localeCompare(a.name));
+      
+      foldersContainer.innerHTML = "";
+      filtered.forEach(f=>{
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${f.image||'https://via.placeholder.com/60'}" alt="Folder">
+          <div class="card-content">
+            <h4><i class="fas fa-folder"></i> ${f.name}</h4>
+            <p><i class="fas fa-user"></i> For: ${f.for}</p>
+            <p><i class="fas fa-building"></i> ${f.company||f.client||""}</p>
+            <p><i class="fas fa-tasks"></i> Projects: ${f.projectCount}</p>
+            <button onclick="openFolder('${f.id}')"><i class="fas fa-eye"></i> Open</button>
+            <button onclick="deleteFolder('${f.id}')"><i class="fas fa-trash"></i> Delete</button>
+          </div>`;
+        foldersContainer.appendChild(card);
+      });
+    }
+    
+    // Load folders from Firebase
+    db.ref("folders").on("value", snap=>{
+      allFolders=[];
+      snap.forEach(folderSnap=>{
+        const f = folderSnap.val();
+        allFolders.push({
+          id: folderSnap.key,
+          name: f.FolderName,
+          for: f.For,
+          company: f.CompanyName,
+          client: f.ClientName,
+          image: f.ImageURL,
+          projectCount: f.projects ? Object.keys(f.projects).length : 0
+        });
+      });
+      renderFolders();
+    });
+    
+    // Actions
+    function openFolder(id){ location.href="folder.html?folderId="+id; }
+    function deleteFolder(id){ alert("Delete folder "+id); }
+    
+    // Listeners
+    document.querySelectorAll(".controls input,.controls select").forEach(el=>{
+      el.addEventListener("input",()=>{ renderFolders(); });
+      el.addEventListener("change",()=>{ renderFolders(); });
+    });
+  </script>
+
+</body>
+</html>

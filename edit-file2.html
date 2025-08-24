@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.6, user-scalable=no">
+  <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Edit Project</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    :root {
+      --blue: #4472A6;
+      --navy: #0E2A47;
+      --white: #ffffff;
+      --gray: #2F3E50;
+      --accent: #A66944;
+      --accent-dark: #47310E;
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    
+nav.main-nav{
+      position:fixed;
+      z-index:1200;
+      left:41%;
+      transform:translateX(-50%);
+      width:87%;
+      max-width:var(--max-width);
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 22px;
+      align-items:center;
+      top:14px;
+      background-color: rgba(14, 42, 71, 0.6)
+;
+      border-radius:30px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 30px rgba(2,6,23,0.35);
+      border: 1px solid rgba(255,255,255, 0.5);
+      margin:0 60px 0 60px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;font-weight:800;
+      letter-spacing:0.6px;
+    }
+    .logo-mark{
+      width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--white), rgba(255,255,255,0.85));
+      color:var(--dark); font-weight:800; font-size:20px;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+
+
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: var(--blue);
+      margin: 0;
+      padding: 2px;
+      color: var(--gray);
+    }
+    .container {
+      background: var(--white);
+      padding: 40px;
+      border-radius: 14px;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.12);
+      margin: 20px;
+margin-top: 100px;
+    }
+    h3 {
+      margin: 30px 0 15px;
+      font-size: 18px;
+      color: var(--blue);
+      border-left: 5px solid var(--accent);
+      padding-left: 10px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label { font-weight: 600; color: var(--navy); margin-bottom: 6px; display: block; }
+    textarea, select {
+      width: 100%; padding: 11px 13px; border: 1px solid #ccc; border-radius: 8px;
+      font-size: 15px; transition: border 0.3s ease;
+    }
+    textarea:focus, select:focus {
+      border-color: var(--blue); outline: none; box-shadow: 0 0 4px rgba(68,114,166,0.4);
+    }
+    textarea { height: 80%; min-width: 31vw; }
+    .category-options, .special-requests {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .option-btn {
+      padding: 8px 14px; background: #f0f0f0; border-radius: 20px; border: 1px solid #ddd;
+      cursor: pointer; font-size: 14px; transition: 0.3s;
+    }
+    .option-btn.selected { background: #4CAF50; color: white; border-color: #388E3C; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 35px; }
+    .btn { padding: 10px 18px; font-size: 15px; border-radius: 8px; cursor: pointer; border: none; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--navy); }
+    .btn-secondary { background: var(--gray); color: var(--white); }
+.badge2{display:inline-flex;align-items:center;gap:6px;background:#e9f2ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid #d3e6ff;
+margin-bottom: 5px;
+}
+
+
+
+
+  </style>
+</head>
+<body>
+
+<div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+
+<div class="container">
+  <h3>Project Info</h3>
+  <input id="projectName" style="font-size:30px;font-weight:bold;" type="text" placeholder="Project Name">
+  
+  <div class="form-group">
+    <label>Description</label>
+    <textarea id="description" placeholder="Describe the project..."></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Category</label>
+    <div class="category-options">
+      <div tabindex="0" class="option-btn">Business Portfolio</div>
+      <div tabindex="0" class="option-btn">E-Commerce</div>
+      <div tabindex="0" class="option-btn">Task Manager</div>
+      <div tabindex="0" class="option-btn">Bookkeeping</div>
+      <div tabindex="0" class="option-btn">Budgeting</div>
+      <div tabindex="0" class="option-btn">Marketing Automation</div>
+<div class="option-btn" id="custonCategory">
+      <input style="border: none; background: transparent;"id="customCategory" type="text" placeholder="Custom Category"></div>
+    </div>
+  </div>
+
+  <h3>Details</h3>
+  <div class="form-group">
+    <label>Size</label>
+    <select id="size">
+      <option>Small</option>
+      <option>Medium</option>
+      <option>Large</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Duration</label>
+    <select id="duration">
+      <option>3 days</option>
+      <option>1 week</option>
+      <option>2 weeks</option>
+      <option>3 weeks</option>
+      <option>1 month</option>
+      <option>1 month+</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Start Date</label>
+    <input id="startDate" type="date">
+  </div>
+
+<!-- Section under Start Date -->
+<div id="extensions-section">
+  <h3>Day Extensions</h3>
+  <div id="extensions-list"></div>
+</div>
+
+
+  <h3>Budget & Payment</h3>
+  <div class="form-group">
+    <input id="budget" type="number" placeholder="Enter budget amount" style="width: 100%; height: 30px;">
+    <div>Prepaid: <input type="checkbox" id="prepaid"></div>
+  </div>
+
+  <h3>Contact</h3>
+  <div class="form-group">
+    <input id="emails" type="text" placeholder="Emails (separate with commas)" style="width: 100%; height: 30px; margin-bottom: 10px;">
+    <input id="phones" type="number" placeholder="Cell Numbers (separate with commas)" style="width: 100%; height: 30px;">
+  </div>
+
+  <h3>Extras</h3>
+  <div class="form-group">
+    <label>Special Requests</label>
+    <div class="special-requests">
+      <div tabindex="0" class="option-btn">App</div>
+      <div tabindex="0" class="option-btn">Email Notifications</div>
+      <div tabindex="0" class="option-btn">Database Storage</div>
+      <div tabindex="0" class="option-btn">QR Code</div>
+      <div tabindex="0" class="option-btn">Feedback Mechanisms</div>
+      <div tabindex="0" class="option-btn">Statistics & Analytics</div>
+      <div tabindex="0" class="option-btn">Profiles</div>
+      <div tabindex="0" class="option-btn">FAQs</div>
+      <div tabindex="0" class="option-btn">Authentication</div>
+<div class="option-btn">
+      <input id="customRequest" style="border: none; background: transparent;" type="text" placeholder="Other requests"></btn>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn btn-secondary" onclick="history.back()">Cancel</button>
+    <button id="saveBtn" class="btn btn-primary">Save</button>
+  </div>
+</div>
+
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+  import { getDatabase, ref, get, update, push, set, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+    authDomain: "users-66be4.firebaseapp.com",
+    databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+    projectId: "users-66be4",
+    storageBucket: "users-66be4.appspot.com",
+    messagingSenderId: "776585122050",
+    appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const folderId = urlParams.get("folderId");
+  const projectId = urlParams.get("projectId");
+
+  let selectedCategory = "";
+  let selectedRequests = [];
+
+  // --- Category buttons ---
+// CATEGORY SELECTION
+const categoryBtns = document.querySelectorAll(".category-options .option-btn");
+categoryBtns.forEach(btn => {
+  if (btn.type === "text") {
+    // Custom input
+    btn.addEventListener("input", () => {
+      categoryBtns.forEach(b => b.classList.remove("selected"));
+      if (btn.value.trim()) {
+        btn.classList.add("selected");
+        selectedCategory = btn.value.trim();
+      } else {
+        selectedCategory = "";
+      }
+    });
+  } else {
+    // Predefined button
+    btn.addEventListener("click", () => {
+      categoryBtns.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedCategory = btn.textContent.trim();
+    });
+  }
+});
+
+
+// SPECIAL REQUESTS SELECTION (only 1 custom allowed)
+const specialBtns = document.querySelectorAll(".special-requests .option-btn");
+specialBtns.forEach(btn => {
+  if (btn.type === "text") {
+    // Custom input
+    btn.addEventListener("input", () => {
+      // Remove any previous custom request
+      selectedRequests = selectedRequests.filter(r => r !== btn.dataset.prev);
+
+      const val = btn.value.trim();
+      if (val) {
+        btn.classList.add("selected");
+        selectedRequests.push(val);
+        btn.dataset.prev = val;
+      } else {
+        btn.classList.remove("selected");
+        btn.dataset.prev = "";
+      }
+    });
+  } else {
+    // Toggle predefined requests
+    btn.addEventListener("click", () => {
+      const val = btn.textContent.trim();
+      if (selectedRequests.includes(val)) {
+        selectedRequests = selectedRequests.filter(r => r !== val);
+        btn.classList.remove("selected");
+      } else {
+        selectedRequests.push(val);
+        btn.classList.add("selected");
+      }
+    });
+  }
+});
+
+  // ✅ Load existing project
+  async function loadProject() {
+    if (!folderId || !projectId) return;
+    const projectRef = ref(db, `folders/${folderId}/projects/${projectId}`);
+    const snap = await get(projectRef);
+    if (!snap.exists()) { alert("❌ Project not found"); return; }
+    const data = snap.val();
+
+    document.getElementById("projectName").value = data.ProjectName || "";
+    document.getElementById("description").value = data.Description || "";
+    document.getElementById("size").value = data.Size || "";
+    document.getElementById("duration").value = data.Duration || "";
+    document.getElementById("startDate").value = data.StartDate || "";
+    document.getElementById("budget").value = data.Budget || "";
+    document.getElementById("prepaid").checked = data.Prepaid || false;
+    document.getElementById("emails").value = (data.Emails || []).join(", ");
+    document.getElementById("phones").value = (data.Phones || []).join(", ");
+
+    // ✅ Category
+    selectedCategory = data.Category || "";
+    if (selectedCategory) {
+      // mark button if exists, otherwise fill custom input
+      let matched = false;
+      categoryBtns.forEach(b => {
+        if (b.textContent.trim() === selectedCategory) {
+          b.classList.add("selected");
+          matched = true;
+        }
+      });
+      if (!matched) document.getElementById("customCategory").value = selectedCategory;
+    }
+
+    // ✅ Special Requests
+    selectedRequests = data.SpecialRequests || [];
+    if (selectedRequests.length) {
+      specialBtns.forEach(b => {
+        if (selectedRequests.includes(b.textContent.trim())) {
+          b.classList.add("selected");
+        }
+      });
+      // if there are custom requests, show them in input (comma separated)
+      const customOnes = selectedRequests.filter(r => 
+        ![...specialBtns].map(b => b.textContent.trim()).includes(r)
+      );
+      document.getElementById("customRequest").value = customOnes.join(", ");
+    }
+  }
+
+  // ✅ Save updates
+  async function saveProject() {
+    const name = document.getElementById("projectName").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const size = document.getElementById("size").value;
+    const duration = document.getElementById("duration").value;
+    const startDate = document.getElementById("startDate").value;
+    const budget = document.getElementById("budget").value;
+    const prepaid = document.getElementById("prepaid").checked;
+    const emails = document.getElementById("emails").value.split(",").map(e => e.trim()).filter(Boolean);
+    const phones = document.getElementById("phones").value.split(",").map(p => p.trim()).filter(Boolean);
+
+    // ✅ Category (if custom input is filled, override)
+    const customCategory = document.getElementById("customCategory").value.trim();
+    if (customCategory) selectedCategory = customCategory;
+
+    // ✅ Special Requests (merge button + custom input)
+    const customReqInput = document.getElementById("customRequest").value.trim();
+    if (customReqInput) {
+      const customReqs = customReqInput.split(",").map(r => r.trim()).filter(Boolean);
+      selectedRequests = [...new Set([...selectedRequests, ...customReqs])]; // merge unique
+    }
+
+    const projectRef = ref(db, `folders/${folderId}/projects/${projectId}`);
+    await update(projectRef, {
+      ProjectName: name,
+      Description: description,
+      Category: selectedCategory,
+      Size: size,
+      Duration: duration,
+      StartDate: startDate,
+      Budget: budget,
+      Prepaid: prepaid,
+      Emails: emails,
+      Phones: phones,
+      SpecialRequests: selectedRequests
+    });
+
+    alert("✅ Project updated!");
+    location.href = `folder.html?folderId=${encodeURIComponent(folderId)}&projectId=${encodeURIComponent(projectId)}`;
+  }
+
+  const commitRef = ref(db, `folders/${folderId}/projects/${projectId}/Commits`);
+
+  // ✅ Load Extensions
+  // --- Load Extensions ---
+async function loadExtensions() {
+  const list = document.getElementById("extensions-list");
+  list.innerHTML = "";
+
+  const snapshot = await get(commitRef);
+  if (!snapshot.exists()) {
+    list.innerHTML = "<p>No extensions yet.</p>";
+    return;
+  }
+
+  let found = false;
+
+  snapshot.forEach(commitSnap => {
+    const commitId = commitSnap.key;
+    const commitData = commitSnap.val();
+
+    // ✅ extensions are directly under the commit
+    if (commitData.extensions) {
+      found = true;
+
+      Object.entries(commitData.extensions).forEach(([key, ext]) => {
+        const div = document.createElement("div");
+        div.classList.add("extension-item");
+
+        div.innerHTML = `
+<div class="badge2">
+          <b> ${ext.amount || 0} days • ${ext.reason || "N/A"}</b>
+         <button onclick="deleteExtension('${commitId}', '${key}')">❌ Delete</button></div>
+        `;
+
+        list.appendChild(div);
+      });
+    }
+  });
+
+  if (!found) {
+    list.innerHTML = "<p>No extensions yet.</p>";
+  }
+}
+
+// --- Save Extension ---
+async function saveExtension(amount, reason) {
+  const timestamp = new Date().toISOString();
+
+  // 🔑 create a new commit
+  const newCommitRef = push(commitRef);
+
+  await set(newCommitRef, {
+    extensions: {
+      0: { amount, reason, timestamp }
+    }
+  });
+
+  loadExtensions();
+}
+
+// --- Delete Extension ---
+async function deleteExtension(commitId, key) {
+  const delRef = ref(
+    db,
+    `folders/${folderId}/projects/${projectId}/Commits/${commitId}/extensions/${key}`
+  );
+  await remove(delRef);
+  loadExtensions();
+}
+
+  window.deleteExtension = deleteExtension;
+  document.getElementById("saveBtn").addEventListener("click", saveProject);
+
+  await loadProject();
+  await loadExtensions();
+</script>
+</body>
+</html>

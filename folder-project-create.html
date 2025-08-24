@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.6, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Project Submission Form</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    :root {
+      --blue: #4472A6;
+      --navy: #0E2A47;
+      --white: #ffffff;
+      --gray: #2F3E50;
+      --accent: #A66944;
+      --accent-dark: #47310E;
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    
+    body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: var(--blue);
+  margin: 0;
+  padding: 2px; /* adds margin around all containers */
+  color: var(--gray);
+padding-top: 90px;
+
+  display: block;   /* containers stack vertically */
+}
+
+.container {
+  background: var(--white);
+  padding: 40px 40px;
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.12);
+  width: calc(100% - 40px); /* leave space on sides */
+   /* leave space top + bottom */
+  box-sizing: border-box;
+  margin: 20px ; /* space between sections */
+}
+
+
+    h2 {
+      margin-bottom: 25px;
+      text-align: left;
+      color: var(--navy);
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    h3 {
+      margin: 30px 0 15px;
+      font-size: 18px;
+      color: var(--blue);
+      border-left: 5px solid var(--accent);
+      padding-left: 10px;
+    }
+
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--navy);
+    } 
+    input[type="tel"],
+    input[type="email"], input[type="number"], 
+    input[type="url"], input[type="date"], textarea, select {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border 0.3s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--blue);
+      outline: none;
+      box-shadow: 0 0 4px rgba(68,114,166,0.4);
+    }
+
+    textarea {
+      height: 80%;
+      min-width: 31vw;
+    }
+
+    .category-options, .special-requests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .option-btn {
+      padding: 8px 14px;
+      background: #f0f0f0;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
+    }
+
+.option-btn:focus {
+  background: var(--blue);
+      color: var(--white);
+      border-color: var(--blue);
+}
+
+    .option-btn:hover {
+      background: var(--blue);
+      color: var(--white);
+      border-color: var(--blue);
+    }
+
+    /* Buttons */
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 35px;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--navy); }
+
+    .btn-secondary { background: var(--gray); color: var(--white); }
+    .btn-secondary:hover { background: var(--accent-dark); }
+
+    .btn-success { background: var(--accent); color: var(--white); }
+    .btn-success:hover { background: var(--accent-dark); }
+
+.grid1{
+display: flex;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 50px;
+
+}
+
+
+
+
+.option-btn.selected {
+  background: #4CAF50;   /* green highlight */
+  color: white;
+  border-color: #388E3C;
+}
+.option-btn[type="text"].selected {
+  background: #4CAF50;
+  color: white;}
+
+.in{
+width: 100%;
+      padding: 11px 13px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+      transition: border 0.3s ease;
+}
+  </style>
+</head>
+<body>
+<div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+
+ <div class="container">
+
+    <!-- Project Info -->
+    <h3>Project Info</h3>
+<input style=" font-size: 30px; font-weight: bold;"type="text" placeholder="Project Name" style="grid-column: 2;">
+<div class="grid1">
+    <div class="form-group">
+      <label>Description</label>
+      <textarea placeholder="Describe the project..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Category</label>
+      <div class="category-options">
+        <div tabindex="0" class="option-btn">Business Portfolio</div>
+        <div tabindex="0"class="option-btn">E-Commerce</div>
+        <div tabindex="0"class="option-btn">Task Manager</div>
+        <div tabindex="0"class="option-btn">Bookkeeping</div>
+        <div tabindex="0"class="option-btn">Budgeting</div>
+        <div tabindex="0"class="option-btn">Marketing Automation</div>
+
+        <input class="option-btn"tabindex="0"  type="text" placeholder="Custom Category">
+      </div>
+    </div>
+</div>
+
+
+    <!-- Details -->
+    <h3>Details</h3>
+    <div class="form-group">
+      <label>Size</label>
+      <select>
+        <option>Small</option>
+        <option>Medium</option>
+        <option>Large</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Duration</label>
+      <select>
+        <option>3 days</option>
+        <option>1 week</option>
+        <option>2 weeks</option>
+        <option>3 weeks</option>
+        <option>1 month</option>
+        <option>1 month+</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Start Date</label>
+      <input type="date">
+    </div>
+
+</div>
+
+<div class="container">
+    <!-- Budget -->
+    <h3>Budget & Payment</h3>
+    <div class="form-group">
+      <input type="number" placeholder="Enter budget amount">
+      <div>
+        Prepaid: <input type="checkbox" id="prepaid"> 
+    </div>
+
+    <!-- Contact -->
+    <h3>Contact</h3>
+    <div class="form-group">
+      <input type="email" class="in"placeholder="Emails (separate with space)">
+      <input type="tel" placeholder="Cell Numbers (separate with #)">
+    </div>
+
+    <!-- Extras -->
+    <h3>Extras</h3>
+    <div class="form-group">
+      <label>Special Requests</label>
+      <div class="special-requests">
+        <div tabindex="0"class="option-btn">App</div>
+        <div tabindex="0"class="option-btn">Email Notifications</div>
+        <div tabindex="0"class="option-btn">Database Storage</div>
+        <div tabindex="0"class="option-btn">QR Code</div>
+        <div tabindex="0"class="option-btn">Feedback Mechanisms</div>
+        <div tabindex="0"class="option-btn">Statistics & Analytics</div>
+        <div tabindex="0"class="option-btn">Profiles</div>
+        <div tabindex="0"class="option-btn">FAQs</div>
+        <div tabindex="0"class="option-btn">Authentication</div>
+        <input class="option-btn"  type="text" placeholder="Other requests">
+      </div>
+    </div>
+
+  
+
+    
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button class="btn btn-secondary">Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+  import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+  // ✅ Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+    authDomain: "users-66be4.firebaseapp.com",
+    databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+    projectId: "users-66be4",
+    storageBucket: "users-66be4.appspot.com",
+    messagingSenderId: "776585122050",
+    appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // ✅ URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectName = urlParams.get("name");   // if editing
+  const folderId = urlParams.get("folderId");
+
+  let selectedCategory = "";
+  let selectedRequests = [];
+
+  // ✅ Highlight buttons for category (single)
+  const categoryBtns = document.querySelectorAll(".category-options .option-btn");
+  categoryBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      categoryBtns.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedCategory = btn.type === "text" ? btn.value.trim() : btn.textContent.trim();
+    });
+  });
+
+  // ✅ Highlight buttons for requests (multiple)
+  const specialBtns = document.querySelectorAll(".special-requests .option-btn");
+  specialBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = btn.type === "text" ? btn.value.trim() : btn.textContent.trim();
+      if (selectedRequests.includes(val)) {
+        selectedRequests = selectedRequests.filter(r => r !== val);
+        btn.classList.remove("selected");
+      } else {
+        if (val) {
+          selectedRequests.push(val);
+          btn.classList.add("selected");
+        }
+      }
+    });
+  });
+
+  // ✅ Load existing project if editing
+  async function loadProject() {
+    if (!projectName || !folderId) return;
+
+    const projectRef = ref(db, `folders/${folderId}/projects/${projectName}`);
+    const snap = await get(projectRef);
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+
+    // Fill form fields
+    document.querySelector('input[placeholder="Project Name"]').value = data.ProjectName || "";
+    document.querySelector("textarea").value = data.Description || "";
+    document.querySelectorAll("select")[0].value = data.Size || "";
+    document.querySelectorAll("select")[1].value = data.Duration || "";
+    document.querySelector('input[type="date"]').value = data.StartDate || "";
+    document.querySelector('input[type="number"]').value = data.Budget || "";
+    document.getElementById("prepaid").checked = data.Prepaid || false;
+    document.querySelector('input[type="email"]').value = (data.Emails || []).join(", ");
+    document.querySelector('input[type="tel"]').value = (data.Phones || []).join(", ");
+
+    // highlight category
+    selectedCategory = data.Category;
+    categoryBtns.forEach(b => {
+      if (b.textContent.trim() === data.Category) b.classList.add("selected");
+    });
+
+    // highlight requests
+    selectedRequests = data.SpecialRequests || [];
+    specialBtns.forEach(b => {
+      if (selectedRequests.includes(b.textContent.trim())) b.classList.add("selected");
+    });
+  }
+
+  // ✅ Save / Update Project
+async function saveProjectHandler() {
+  const name = document.querySelector('input[placeholder="Project Name"]').value.trim();
+  const description = document.querySelector("textarea").value.trim();
+  const size = document.querySelectorAll("select")[0].value;
+  const duration = document.querySelectorAll("select")[1].value;
+  const startDate = document.querySelector('input[type="date"]').value;
+  const budget = document.querySelector('input[type="number"]').value;
+  const prepaid = document.getElementById("prepaid").checked;
+  const emails = document.querySelector('input[type="email"]').value.split(" ").map(e => e.trim()).filter(Boolean);
+  const cells = document.querySelector('input[type="tel"]').value.split("#").map(p => p.trim()).filter(Boolean);
+
+  const folderRef = ref(db, "folders/" + folderId);
+  const folderSnap = await get(folderRef);
+
+  if (!folderSnap.exists()) {
+    alert("❌ Folder not found!");
+    return;
+  }
+  const folderData = folderSnap.val();
+
+  // ✅ Generate numeric projectId
+  let projectId = urlParams.get("projectId");
+  if (!projectId) {
+    projectId = Date.now().toString(); // e.g. "1755685471878"
+  }
+
+  // Prepare project object
+  const projectData = {
+    projectId: projectId,
+    ProjectName: projectId,   // ✅ temporarily save ID as ProjectName
+    Description: description,
+    Category: selectedCategory,
+    Size: size,
+    Duration: duration,
+    StartDate: startDate,
+    Budget: budget,
+    Prepaid: prepaid,
+    Emails: emails,
+    Phones: cells,
+    SpecialRequests: selectedRequests,
+    Extensions: 0,
+    CompanyName: folderData?.CompanyName || "",
+ClientName: folderData?.ClientName || "",
+Occupation: folderData?.Occupation || "",
+Sponsor: folderData?.Sponsor || "",
+
+
+    // Inherit from folder
+    For: folderData.For,
+    ImageURL: folderData.ImageURL || "logo2.jpeg",
+    folderId: folderId
+  };
+
+  // ✅ Attach client/company fields
+  if (folderData.For === "company") {
+    projectData.CompanyName = folderData.CompanyName || "";
+    projectData.Sponsor = folderData.Sponsor || "";
+  } else if (folderData.For === "individual") {
+    projectData.ClientName = folderData.ClientName || "";
+    projectData.Occupation = folderData.Occupation || "";
+  }
+
+  // ✅ Save under numeric ID
+  const projectRef = ref(db, `folders/${folderId}/projects/${projectId}`);
+  const snapshot = await get(projectRef);
+
+  if (snapshot.exists()) {
+    await update(projectRef, projectData);
+    alert("✅ Project updated successfully!");
+  } else {
+    await set(projectRef, projectData);
+    alert("✅ Project created successfully!");
+  }
+
+  // ✅ Now update ProjectName to the real name entered
+  await update(projectRef, { ProjectName: name });
+
+  // ✅ Redirect with projectId
+  location.href = `folder.html?folderId=${encodeURIComponent(folderId)}&projectId=${encodeURIComponent(projectId)}`;
+}
+
+
+
+  // Load project if editing
+  loadProject();
+
+  // Save button
+  document.querySelector(".btn-primary").addEventListener("click", saveProjectHandler);
+</script>
+</body>
+</html>

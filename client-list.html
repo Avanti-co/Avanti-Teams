@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+   <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+<script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
+  <title>Avanti — Database</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkfK4R8iT9YlH0hZl0hY9GQSC0C9Gv5b9Z9J4GZ4QkY0ttd3Q2Cj5rYKw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Firebase (compat so you can use namespaced API) -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.3/firebase-database-compat.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#008080">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(reg => console.log("Service worker registered:", reg))
+        .catch(err => console.error("Service worker error:", err));
+    });
+  }
+</script>
+  <style>
+    :root{
+      --blue:#3b6ea5;
+      --deep:#27496d;
+      --ink:#0e2b4a;
+      --card:#1f3f62;
+      --line:#9fc3e8;
+      --muted:#cfe3fb;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      color:#fff;
+      background: linear-gradient(160deg, var(--blue), var(--deep));
+    }
+/* Toolbar */
+    .toolbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 2px solid #333;
+      z-index: 1000;
+    }
+
+    .toolbar i {
+      color: #aaa;
+      font-size: 30px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .toolbar i:hover {
+      color: #fff;
+    }
+
+    header{
+      display:flex; align-items:center; justify-content:center; gap:.8rem;
+      padding:24px 16px; background:rgba(0,0,0,.15); backdrop-filter: blur(4px);
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    header .brand{display:flex;align-items:center;gap:.6rem;font-weight:800;letter-spacing:.06em}
+    header .brand i{font-size:1.25rem}
+    header .brand span{font-size:1.1rem; opacity:.85}
+    header h1{
+      font-size:1.5rem; margin:0; font-weight:800; letter-spacing:.06em;
+    }
+    main{max-width:1100px;margin:28px auto 80px;padding:0 16px}
+    /* Card + Tree */
+    .panel{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:16px; overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .panel-header{
+      padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+      background:rgba(0,0,0,.12);
+    }
+    .panel-header h2{margin:0; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; opacity:.9}
+    .panel-header .legend{display:flex; gap:14px; font-size:.9rem; opacity:.85}
+    .legend .pill{display:inline-flex; align-items:center; gap:.45rem; background:rgba(255,255,255,.08); padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12)}
+    .pill i{opacity:.85}
+    .tree{
+      padding:10px 18px 24px 28px;
+    }
+    /* Connectors */
+    .tree ul{list-style:none; margin:0; padding-left:22px; position:relative}
+    .tree ul::before{
+      content:""; position:absolute; left:8px; top:0; bottom:0;
+      border-left:2px solid var(--line); opacity:.6;
+    }
+    .tree li{position:relative; margin:14px 0}
+    .tree li::before{
+      content:""; position:absolute; left:-14px; top:18px; width:22px;
+      border-top:2px solid var(--line); opacity:.6;
+    }
+    /* Node */
+    .node{
+      display:flex; align-items:center; gap:12px;
+      background: var(--card);
+      padding:12px 14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+    }
+    .node .icon{
+      width:36px;height:36px;border-radius:10px; display:grid; place-items:center;
+      background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+      flex:0 0 36px;
+    }
+    .node .icon i{font-size:16px}
+    .node img{
+      width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #fff; flex:0 0 44px;
+    }
+    .node .content{display:flex; flex-direction:column}
+    .node .title{font-weight:700; font-size:.98rem; margin:0 0 2px}
+    .node .meta{margin:0; font-size:.86rem; color:var(--muted)}
+    .node .badge{
+      margin-left:auto; font-size:.75rem; text-transform:uppercase; letter-spacing:.08em;
+      background:rgba(255,255,255,.08); padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,.12)
+    }
+    /* Section headers inside the tree */
+    .group{
+      display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.08em;
+      text-transform:uppercase; opacity:.95; padding:10px 0 2px;
+    }
+    /* Toggle */
+    .toggle{cursor:pointer; user-select:none}
+    .toggle i{transition: transform .2s ease}
+    .collapsed > ul{display:none}
+    .collapsed > .group .chev i{transform: rotate(-90deg)}
+    /* Empty state */
+    .empty{
+      padding:28px 18px; text-align:center; color:var(--muted)
+    }
+    /* Footer */
+    footer{max-width:1100px;margin:0 auto 40px;padding:0 16px;opacity:.7;font-size:.9rem}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.node .actions{
+  margin-left:auto; display:flex; gap:8px;
+}
+.icon-btn{
+  border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08);
+  padding:6px; border-radius:8px; cursor:pointer; font:inherit; color:#fff;
+}
+.icon-btn:hover{ background:rgba(255,255,255,.15) }
+.editable{
+  display:inline-block; min-width:12ch; padding:2px 4px; border-radius:6px;
+  outline: none; border:1px dashed transparent;
+}
+.editing{ border-color:var(--line); background:rgba(255,255,255,.08) }
+.hint{ font-size:.78rem; opacity:.6; margin-left:8px; display:none }
+.editing + .hint{ display:inline }
+.danger{ border-color:#ff7a7a !important; }
+  </style>
+</head>
+<body>
+  <div style=" position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 85px;
+      background: #222;
+       display: flex;
+      padding-left: 15px;
+      align-items: left;
+      border-top: 2px solid #333;
+text-align: left;
+      z-index: 1001;">
+
+  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
+      letter-spacing:0.6px;
+"aria-hidden="true">
+
+<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
+
+    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
+      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
+
+</div>
+      <div>
+        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
+        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+      </div>
+    </div>
+
+<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+
+
+  </div>
+  <header>
+    <div class="brand"><i class="fa-solid fa-circle-nodes"></i> <h1>AVANTI</h1> <span>Database</span></div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-header">
+        <h2><i class="fa-solid fa-diagram-project"></i> Data from Firebase Realtime Database (Folders & Project Files)</h2>
+      
+      </div>
+
+      <div id="errors" class="sr-only" role="status" aria-live="polite"></div>
+
+      <div id="tree" class="tree">
+        <div class="empty">Connecting to Firebase...</div>
+      </div>
+    </section>
+  </main>
+  <div class="toolbar">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i>
+    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+  
+    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
+    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  </div>
+
+  <footer>Tip: Make sure your Realtime Database rules allow read access for your current auth state, and double‑check the <strong>databaseURL</strong> in your Firebase config.</footer>
+
+<script>
+  // ---- CONFIG ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+    authDomain: "users-66be4.firebaseapp.com",
+    databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+    projectId: "users-66be4",
+    storageBucket: "users-66be4.appspot.com",
+    messagingSenderId: "776585122050",
+    appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+  };
+
+  // ---- INIT ----
+  let app, db;
+  window.addEventListener('load', () => {
+    try{
+      app = firebase.initializeApp(firebaseConfig);
+      db  = firebase.database();
+      loadData();
+      attachGlobalHandlers();
+    }catch(err){
+      showError("Firebase failed to initialize. Check your config.", err);
+    }
+  });
+
+  // ---- UTILITIES ----
+  const PLACEHOLDER_IMG = "https://via.placeholder.com/80x80.png?text=%20";
+  const norm = v => (v==null ? "" : String(v));
+  const lower = v => norm(v).trim().toLowerCase();
+  const escapeHtml = s => norm(s)
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+
+  function detectFor(obj){
+    return lower(obj.For || obj.for || (obj.Emails && obj.Emails.For) || (obj.Details && obj.Details.For)) || "individual";
+  }
+  function getImage(obj){
+    return (obj.ImageURL || (obj.Emails && obj.Emails.ImageURL) || (obj.Details && obj.Details.ImageURL)) || PLACEHOLDER_IMG;
+  }
+  function getClient(obj){ return obj.ClientName || obj.clientName || obj.Name || obj.name || "Unnamed"; }
+  function getOccupation(obj){ return obj.Occupation || obj.occupation || "N/A"; }
+  function getCompany(obj){ return obj.CompanyName || obj.companyName || obj.Name || obj.name || "Unnamed Company"; }
+  function getSponsor(obj){ return obj.Sponsor || obj.sponsor || "N/A"; }
+
+  function showError(msg, err){
+    console.error(msg, err || "");
+    const el = document.getElementById("errors");
+    el.classList.remove("sr-only");
+    el.textContent = msg + (err?.message ? " — " + err.message : "");
+    document.getElementById("tree").innerHTML = '<div class="empty">'+escapeHtml(msg)+'</div>';
+  }
+
+  // Parse common types: numbers, booleans, null, JSON, else string
+  function parseTypedValue(s){
+    const t = s.trim();
+    if (t === "true") return true;
+    if (t === "false") return false;
+    if (t === "null") return null;
+    if (t !== "" && !isNaN(Number(t))) return Number(t);
+    if ((t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"))) {
+      try { return JSON.parse(t); } catch { /* fallthrough */ }
+    }
+    return s;
+  }
+
+  // ---- NODE RENDERERS ----
+  function customerNode(data, scopeLabel){
+    const ftype = detectFor(data);
+    const isIndividual = ftype === "individual";
+    const icon = isIndividual ? "fa-user" : "fa-building";
+    const title = isIndividual ? getClient(data) : getCompany(data);
+    const meta = isIndividual ? `<i class='fa-solid fa-briefcase'></i> ${escapeHtml(getOccupation(data))}`
+                              : `<i class='fa-solid fa-handshake'></i> Sponsor: ${escapeHtml(getSponsor(data))}`;
+    const img = getImage(data);
+
+    return `
+      <div class="node" role="group" aria-label="${escapeHtml(scopeLabel)}">
+        <div class="icon"><i class="fa-solid ${icon}"></i></div>
+        <img src="${escapeHtml(img)}" alt="" onerror="this.src='${PLACEHOLDER_IMG}'">
+        <div class="content">
+          <div class="title">${escapeHtml(title)}</div>
+          <p class="meta">${meta}</p>
+        </div>
+        <span class="badge">${escapeHtml(ftype)}</span>
+      </div>
+    `;
+  }
+
+  function groupHeader(label, icon, path){
+    const pathAttr = path ? `data-path="${escapeHtml(path)}"` : "";
+    return `
+      <div class="group toggle">
+        <span class="chev"><i class="fa-solid fa-chevron-down"></i></span>
+        <i class="fa-solid ${icon}"></i> ${escapeHtml(label)}
+        <span class="actions" style="margin-left:auto">
+          <button class="icon-btn delete-branch" title="Delete this branch" ${pathAttr}>
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </span>
+      </div>
+    `;
+  }
+  const wrapGroup = content => `<ul>${content}</ul>`;
+
+  // ---- RECURSIVE TREE (with Firebase paths) ----
+  function renderBranch(obj, currentPath){
+    if (typeof obj !== "object" || obj === null) return "";
+
+    let items = "";
+    for (const key in obj){
+      const val = obj[key];
+      const path = currentPath ? `${currentPath}/${key}` : key;
+
+      if (val && typeof val === "object"){
+        // Folder
+        if (val.FolderName){
+          items += `
+            <li class="branch">
+              ${groupHeader(`Folder — ${escapeHtml(val.FolderName)}`, "fa-folder-closed", path)}
+              ${wrapGroup(`
+                <li>${customerNode(val, "Folder Owner / Customer")}</li>
+                ${renderBranch(val, path)}
+              `)}
+            </li>`;
+        }
+        // Project
+        else if (val.ProjectName || val.projectName){
+          const pname = val.ProjectName || val.projectName || key;
+          items += `
+            <li class="branch">
+              ${groupHeader(`Project — ${escapeHtml(pname)}`, "fa-clipboard", path)}
+              ${wrapGroup(`
+                <li>${customerNode(val, "Project Customer")}</li>
+                ${renderBranch(val, path)}
+              `)}
+            </li>`;
+        }
+        // Generic group
+        else{
+          items += `
+            <li class="branch">
+              ${groupHeader(`Group — ${escapeHtml(key)}`, "fa-diagram-project", path)}
+              ${wrapGroup(renderBranch(val, path))}
+            </li>`;
+        }
+      } else {
+        // Primitive (editable)
+        const valStr = val === null ? "null" : String(val);
+        items += `
+          <li>
+            <div class="node" data-path="${escapeHtml(path)}">
+              <div class="icon"><i class="fa-solid fa-circle-info"></i></div>
+              <div class="content">
+                <div class="title">${escapeHtml(key)}</div>
+                <p class="meta">
+                  <span class="editable" contenteditable="false" data-path="${escapeHtml(path)}" data-original="${escapeHtml(valStr)}">${escapeHtml(valStr)}</span>
+                  <span class="hint">Enter to save • Esc to cancel</span>
+                </p>
+              </div>
+              <div class="actions">
+                <button class="icon-btn start-edit" title="Edit" data-path="${escapeHtml(path)}"><i class="fa-solid fa-pen"></i></button>
+                <button class="icon-btn delete-leaf" title="Delete" data-path="${escapeHtml(path)}"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+          </li>
+        `;
+      }
+    }
+    return items;
+  }
+
+  // ---- DATA LOADING ----
+  async function loadData(){
+    const container = document.getElementById("tree");
+    container.innerHTML = '<div class="empty">Loading data...</div>';
+    try{
+      const [foldersSnap, projectsSnap] = await Promise.all([
+        db.ref("folders").get(),
+        db.ref("project_files").get(),
+      ]);
+
+      const folders = foldersSnap.exists() ? foldersSnap.val() : {};
+      const projects = projectsSnap.exists() ? projectsSnap.val() : {};
+
+      let foldersHtml = renderBranch(folders, "folders");
+      if (!foldersHtml) foldersHtml = `<li><div class="empty">No folders found.</div></li>`;
+      let projectsHtml = renderBranch(projects, "project_files");
+      if (!projectsHtml) projectsHtml = `<li><div class="empty">No project files found.</div></li>`;
+
+      container.innerHTML = `
+        <ul>
+          <li class="branch">${groupHeader("Folders", "fa-folder", "folders")}${wrapGroup(foldersHtml)}</li>
+          <li class="branch">${groupHeader("Project Files", "fa-clipboard", "project_files")}${wrapGroup(projectsHtml)}</li>
+        </ul>
+      `;
+
+      // Toggle behavior (collapsed by default)
+      container.querySelectorAll(".branch > .group").forEach(g => {
+        const li = g.parentElement;
+        li.classList.add("collapsed");
+        g.addEventListener("click", (e) => {
+          // avoid collapsing when clicking action buttons
+          if (e.target.closest(".icon-btn")) return;
+          li.classList.toggle("collapsed");
+        });
+      });
+    }catch(err){
+      showError("Could not load data from Realtime Database.", err);
+    }
+  }
+
+  // ---- EDIT / DELETE HANDLERS (event delegation) ----
+  function attachGlobalHandlers(){
+    const container = document.getElementById("tree");
+
+    // Start edit
+    container.addEventListener("click", (e) => {
+      const btn = e.target.closest(".start-edit");
+      if (!btn) return;
+      const path = btn.dataset.path;
+      const span = container.querySelector(`.editable[data-path="${CSS.escape(path)}"]`);
+      if (!span) return;
+      span.contentEditable = "true";
+      span.classList.add("editing");
+      span.focus();
+      // place caret at end
+      const range = document.createRange();
+      range.selectNodeContents(span);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+
+    // Key handling for save/cancel
+    container.addEventListener("keydown", async (e) => {
+      const span = e.target.closest(".editable.editing");
+      if (!span) return;
+
+      if (e.key === "Enter"){  // Save
+        e.preventDefault();
+        const newText = span.textContent;
+        await saveValue(span, newText);
+      } else if (e.key === "Escape"){ // Cancel
+        e.preventDefault();
+        cancelEdit(span);
+      }
+    });
+
+    // Blur cancels (no save)
+    container.addEventListener("blur", (e) => {
+      const span = e.target.closest(".editable.editing");
+      if (!span) return;
+      cancelEdit(span);
+    }, true);
+
+    // Delete leaf
+    container.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".delete-leaf");
+      if (!btn) return;
+      const path = btn.dataset.path;
+      const key = path.split("/").pop();
+      if (!confirm(`Delete value for "${key}"?\nPath: ${path}`)) return;
+      try{
+        await db.ref(path).remove();
+        await loadData();
+      }catch(err){
+        showError("Delete failed.", err);
+      }
+    });
+
+    // Delete branch
+    container.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".delete-branch");
+      if (!btn) return;
+      const path = btn.dataset.path;
+      const labelEl = btn.closest(".group");
+      const label = labelEl ? labelEl.textContent.trim() : path;
+      if (!confirm(`Delete entire branch?\n${label}\n\nThis removes everything under:\n${path}`)) return;
+      try{
+        await db.ref(path).remove();
+        await loadData();
+      }catch(err){
+        showError("Delete branch failed.", err);
+      }
+    });
+  }
+
+  async function saveValue(span, newText){
+    const path = span.dataset.path;
+    const original = span.getAttribute("data-original") ?? "";
+    try{
+      const typed = parseTypedValue(newText);
+      await db.ref(path).set(typed);
+      // finish + refresh
+      span.contentEditable = "false";
+      span.classList.remove("editing");
+      await loadData();
+    }catch(err){
+      span.classList.add("danger");
+      showError("Save failed.", err);
+      // revert UI value
+      span.textContent = original;
+      span.contentEditable = "false";
+      span.classList.remove("editing");
+      setTimeout(() => span.classList.remove("danger"), 1200);
+    }
+  }
+
+  function cancelEdit(span){
+    const original = span.getAttribute("data-original") ?? "";
+    span.textContent = original;
+    span.contentEditable = "false";
+    span.classList.remove("editing");
+  }
+</script>
+
+</body>
+</html>
