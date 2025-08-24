@@ -1,6 +1,7 @@
 const CACHE_NAME = "teams-cache-v1";
 const FILES_TO_CACHE = [
   "/",
+  "/index.html",
   "/project.html",
   "/payment-received.html",
   "/potential-projects.html",
@@ -39,8 +40,7 @@ const FILES_TO_CACHE = [
   "/company-news.html",
   "/create-project.html",
   "/custom-template.html",
-  "/design-template.html",
-  "/index.html",
+  "/design-template.html"
 ];
 
 // Install service worker
