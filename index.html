@@ -1,1018 +1,1051 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dashboard</title>
- <meta name="viewport" content="width=device-width, initial-scale=0.7" />
+  <meta charset="UTF-8" />
+  <title>Avanti Teams — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.7" />
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- Icons -->
   <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#008080">
 
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(reg => console.log("Service worker registered:", reg))
-        .catch(err => console.error("Service worker error:", err));
-    });
-  }
-</script>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3f72af" />
+
   <style>
+    /* ===================== BRAND (from your screenshot) ===================== */
+    :root{
+      /* Blues pulled from your UI image */
+    --bg1: #1A3C5A; /* Darker version of #2b5078 */
+--bg2: #2B4C6F; /* Darker version of #396390 */
+--bg3: #335A83; /* Darker version of #446e9b */
 
-    /* ===== BRAND THEME (Avanti) ===== */
-:root {
-  --primary: #497BBE;       /* Corporate Blue */
-  --primary-dark: #0F2E4D;  /* Deep Navy */
-  --accent: #2E9CCA;        /* Cyan accent */
-  --accent-light: #5DB7DE;  
-  --bg-gradient: linear-gradient(135deg, #0F2E4D, #497BBE);
-  --card-gradient: linear-gradient(135deg, #2A4E77, #497BBE);
-  --text-light: #ffffff;
-  --text-muted: #cbd5e1;
-  --radius: 14px;
-  --transition: 0.3s ease;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-}
+      --ink: #f5f8fc;        /* primary on-dark text */
+      --muted: #94a8bd;      /* secondary text on dark */
+      --header: #222223;     /* top bar */
+      --green: #4dad50;      /* back button */
+      --chip: rgba(255,255,255,.10);
+      --chip-border: rgba(255,255,255,.18);
+      --card: rgba(23,40,66,.75);
+      --card-border: rgba(255,255,255,.12);
+      --accent: #9fc4ff;     /* light accent for pills/badges */
+      --accent-strong: #a7d3ff;
+      --radius: 14px;
+      --shadow: 0 10px 28px rgba(0,0,0,.30);
+      --speed: .25s;
+    }
 
-/* ===== BODY ===== */
-body {
-  margin: 0;
-  padding: 2rem;
-  background: #F4F7FB;
-  color: var(--text-light);
-  min-height: 100vh;
-  padding-top: 0;
-  
-}
+    /* ===================== LAYOUT ===================== */
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.08), transparent 50%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      
+padding-top: 70px;
 
-/* ===== SECTION HEADINGS ===== */
-h1 {
-  margin-top: 3rem;
-  margin-bottom: 1rem;
-  
-  color: var(--accent-light);
+    }
+
+    /* ===================== HEADER ===================== */
+ .topbar {
+  height: 72px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  /* Theme Styling */
+  background-color: #3f72af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Layout */
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-h1 {
-  color: var(--accent);
+  justify-content: space-between;
+  padding: 0 24px;
 }
 
-/* ===== SUMMARY ===== */
-.summary {
-  font-size: 1.6rem;
+/* ===== LEFT SECTION (Logo / Brand) ===== */
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.topbar .brand img {
+  height: 55px;
+  width: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px;
+    }
+    .brand .logo{
+      width:42px; height:42px; border-radius:15px; overflow:hidden; flex:none;
+    }
+    .brand h1{
+      margin:0; font-size:18px; font-weight:800;
+    }
+    .brand h1 span{ color:#9fc4ff; font-weight:800; }
+
+    .back-btn{
+      background: var(--green);
+      color:#fff; border:0; padding:9px 14px; border-radius:10px;
+      cursor:pointer; font-weight:700;
+      display:inline-flex; gap:8px; align-items:center;
+      box-shadow: 0 6px 18px rgba(77,173,80,.35);
+      transition: transform var(--speed);
+    }
+    .back-btn:hover{ transform: translateY(-1px); }
+
+    /* ===================== SUMMARY STRIP ===================== */
+    .stats{
+      display:grid; gap:14px;
+      grid-template-columns: repeat(4, minmax(160px,1fr));
+      padding: 18px; margin: 18px;
+    }
+    .stat{
+      background: linear-gradient(180deg, rgba(69,110,155,.35), rgba(46,86,129,.35));
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 16px;
+      display:flex; align-items:center; gap:12px;
+      backdrop-filter: blur(6px);
+    }
+    .stat i{ font-size:20px; color: var(--accent-strong); }
+    .stat .k{ font-size:22px; font-weight:800; margin:0; }
+    .stat .t{ margin:0; font-size:12px; color: var(--muted); }
+
+    /* ===================== TABS ===================== */
+.tabs {
+  display: flex;
+  justify-content: flex-start;
+  gap: 4px;
+  position: sticky;
+  top: 200px;
+  z-index: 1000;
+  border-bottom: 2px solid var(--chip-border); /* tab bar line */
+}
+
+.tab-btn {
+  border: 1px solid transparent;
+  border-bottom: none; /* blend into the tab bar */
+  background: var(--chip);
+  color: var(--ink);
+  padding: 10px 18px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  cursor: pointer;
   font-weight: 600;
-  margin-bottom: 2rem;
-  padding: 1rem 1.4rem;
-  border-radius: var(--radius);
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  color: white;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  animation: fadeIn 0.7s ease forwards;
-margin-top: 100px;
-}
-.summary i {
-  font-size: 1.5rem;
+  backdrop-filter: blur(6px);
+  transition: background var(--speed), transform var(--speed), color var(--speed);
 }
 
-/* ===== CONTROLS ===== */
+.tab-btn:hover {
+  background: rgba(93,136,189,0.1);
+  transform: translateY(-1px);
+}
+
+.tab-btn.active {
+  background: #fff; /* or a light variant */
+  color: #2c3e50;
+  border: 1px solid var(--chip-border);
+  border-bottom: 2px solid #fff; /* makes it appear "connected" */
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+  z-index: 2; /* keep above inactive tabs */
+}
+    .total-pill{
+      text-align:center; margin: 8px 18px 0; color: var(--muted); font-weight:700;
+margin-top: 20px;
+
+    }
+
+    .tab-content{ display:none; }
+    .tab-content.active{ display:block; }
+
+    /* ===================== CONTROLS ===================== */
+/* ===== CONTROL PANEL ===== */
 .controls {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  margin: 0 auto 25px;
+  background-color: #3f72af;
+  border-radius: 0px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
   flex-wrap: wrap;
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
+position: sticky;
+top: 60px;
+z-index: 1000;
 }
-.controls input, 
-.controls select, 
-.controls button {
-  padding: 0.6rem 1rem;
-  border-radius: var(--radius);
-  border: none;
-  outline: none;
-  font-size: 0.9rem;
-  transition: var(--transition);
-}
-.controls input, 
-.controls select {
-  background: #1e293b;
-  color: var(--text-light);
-  border: 1px solid #334155;
-}
-.controls input::placeholder { color: var(--text-muted); }
-.controls input:focus, 
-.controls select:focus {
-  border-color: var(--accent-light);
-  box-shadow: 0 0 0 2px rgba(93,183,222,0.4);
-}
-.controls button {
-  background: var(--accent);
-  color: white;
-  cursor: pointer;
-  font-weight: 500;
+
+/* SEARCH BAR */
+.search {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 8px;
+  flex: 1;
+  min-width: 100%;
+  max-width: 400px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 25px;
+  padding: 8px 14px;
+  color: #fff;
+  transition: all 0.25s ease;
 }
-.controls button:hover {
-  background: var(--accent-light);
+.search:hover {
+  background: rgba(255,255,255,0.18);
+}
+.search i {
+  color: #fff;
+  opacity: 0.8;
+}
+.search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-size: 14px;
 }
 
-/* ===== CARD CONTAINER ===== */
-.card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
-  gap: 1.2rem;
+/* FILTER DROPDOWN */
+.select {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 25px;
+  padding: 8px 14px;
+  min-width: 150px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.select:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: #fff;
 }
 
-
-/* ===== CARDS ===== */
-:root {
-  --primary: #1e88e5;       /* blue */
-  --primary-dark: #1565c0;  /* darker blue */
-  --accent: #42a5f5;        /* lighter blue */
-  --text: #2c3e50;          /* dark grey */
-  --text-muted: #607d8b;    /* muted grey */
-  --radius: 10px;
-  --transition: all 0.3s ease;
+/* ACTION BUTTON */
+.button-link {
+  background: #fff;
+  color: #497BBE;
+  padding: 10px 18px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.25);
+  transition: all 0.25s ease;
+}
+.button-link:hover {
+  background: #f0f4ff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.35);
 }
 
-/* card container */
-.card {
-  background: #ffffff;
-  border-radius: var(--radius);
-  padding: 1rem;
+    /* ===================== GRID + CARDS ===================== */
+    .grid{
+      display:grid; gap:18px; padding: 18px; margin-bottom: 96px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px; overflow:hidden;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      transition: transform var(--speed), box-shadow var(--speed), border-color var(--speed);
+    }
+    .card:hover{
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 16px 36px rgba(0,0,0,.38);
+    }
+    .thumb{
+      width:100%; height:150px; object-fit:cover; display:block;
+      background:#183154;
+    }
+    .card-body{ padding: 14px 14px 16px; }
+    .kicker{
+      font-size:11px; letter-spacing:.12em; text-transform:uppercase; color: var(--muted);
+      display:flex; gap:6px; align-items:center; margin-bottom:6px;
+    }
+    .title{
+      margin:0 0 6px 0; font-size:16px; font-weight:800; color:#fff;
+      text-shadow: 0 1px 0 rgba(0,0,0,.25);
+    }
+    .meta{ display:flex; flex-wrap:wrap; gap:6px; margin: 6px 0 10px; }
+    .badge{
+      font-size:11px; font-weight:800; letter-spacing:.02em;
+      padding: 4px 8px; border-radius: 10px;
+      color:#0f1f33; background: linear-gradient(180deg, #a7d3ff, #90c6ff);
+    }
+    .badge.gray{
+      color:#dbe9ff; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+    }
+    .desc{ margin: 6px 0 8px; color: var(--muted); font-size:13px; }
+
+    .dates{ font-size:12px; color: var(--muted); margin-top: 2px; }
+    .progressbar{ height: 8px; background: rgba(255,255,255,.10); border-radius:8px; overflow:hidden; margin-top:8px; }
+    .progressbar > span{ display:block; height:100%; background: linear-gradient(90deg, #72b0ff, #a7d3ff); }
+
+    .actions{
+      display:flex; gap:8px; flex-wrap:wrap; margin-top: 12px;
+    }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06); color:#fff; cursor:pointer; font-weight:700;
+      transition: transform var(--speed), background var(--speed);
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.12); }
+
+    /* ===================== BOTTOM BAR ===================== */
+ .toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%);
+  height: 84px;
+  padding: 0 28px;
+  background: rgba(22, 31, 45, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
-  gap: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: var(--transition);
-  transform: translateY(0);
-  animation: fadeInUp 0.6s ease both;
-  border: 1px solid #e3f2fd; /* light blue border */
+  align-items: center;
+  justify-content: space-around;
+  color: #e2ebff;
+  z-index: 1002;
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+width: 98%;
+}
+
+.toolbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 64px;
+  cursor: pointer;
+  transition: transform 0.25s, color 0.25s;
+}
+
+.toolbar-item i {
+  font-size: 26px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.25s, transform 0.25s;
+}
+
+.toolbar-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.25s;
+margin-top: -10px;
+}
+
+.toolbar-item:hover i {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-3px);
+}
+
+.toolbar-item:hover span {
+  color: #ffffff;
+}
+
+.plus-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ========= PLUS BUTTON ========= */
+.plus-btn {
+  height: 70px;
+  width: 70px;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 50%;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.plus-btn i {
+  color: #fff;
+  font-size: 32px;
+}
+
+.plus-container.active .plus-btn {
+  transform: rotate(45deg) scale(1.2);
+  background-color: red;
+}
+
+/* ========= OPTIONS CONTAINER ========= */
+.options {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  margin-left: -35px;
+  background: rgba(63, 114, 175, 1);
+
+}
+
+
+
+.plus-container.active .options {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ========= OPTION BUTTONS ========= */
+.option {
+  position: absolute;
+  width: 75px;
+  height: 75px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(63, 114, 175, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  cursor: pointer;
+  font-size: 24px;
+
+  transform: rotate(0deg) translateY(120px) scale(0);
+  opacity: 0;
+
+
+}
+
+/* Animate both around the button */
+.plus-container.active .option {
+  animation: circleOrbit 1s ease-out forwards;
+}
+
+.plus-container.active .option:nth-child(1) {
+  animation-delay: 0s;
+  --angle: 155deg;  /* top-right */
+}
+.plus-container.active .option:nth-child(2) {
+  animation-delay: 0.1s;
+  --angle: 200deg; /* top-left */
+}
+
+@keyframes circleOrbit {
+  0% {
+    transform: rotate(0deg) translateY(160px) scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: rotate(var(--angle)) translateY(155px) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateY(140px) scale(1);
+    opacity: 1;
+  }
+}
+
+.option:hover {
+  transform: rotate(var(--angle)) translateY(120px) scale(1.15);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+    /* ===================== UTIL ===================== */
+    .hidden{ display:none !important; }
+    @media (max-width: 820px){
+      .stats{ grid-template-columns: repeat(2,1fr); }
+    }
+.card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform var(--transition), box-shadow var(--transition);
 }
 
 .card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 8px 18px rgba(30,136,229,0.2);
-  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
-/* image */
+/* Image section */
 .card img {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius);
+  width: 100px;
+  height: 100px;
   object-fit: cover;
-  border: 2px solid var(--primary);
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: #f0f0f0;
 }
 
-/* content */
+/* Content section */
 .card-content {
- 
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .card-content h4 {
-  margin: 0 0 0.4rem 0;
-  font-size: 1.6rem;
-  color: var(--primary-dark);
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .card-content p {
-  margin: 0.2rem 0;
-  font-size: 0.85rem;
+  margin: 3px 0;
+  font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.4;
 }
 
-/* buttons */
-.card-content button {
-  margin-top: 0.5rem;
-  margin-right: 0.3rem;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.8rem;
-  border-radius: var(--radius);
-  border: none;
-  cursor: pointer;
-  background: var(--primary);
-  color: #fff;
-  display: inline-flex;
+.card-footer {
+  margin-top: 10px;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
-  transition: var(--transition);
+  gap: 10px;
 }
 
-.card-content button:hover {
-  background: var(--accent);
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(66,165,245,0.3);
-}
-
-.card-content button i {
-  transition: var(--transition);
-}
-
-.card-content button:hover i {
-  transform: rotate(15deg);
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar {
-  width: 100%;
-  height: 8px;
+.badge2 {
+  padding: 4px 10px;
   border-radius: 20px;
-  background: lightgray;
-  margin: 0.6rem 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+}
+
+.progress-bar {
+  flex: 1;
+  background: #E8EDF5;
+  border-radius: 8px;
+  height: 6px;
   overflow: hidden;
 }
+
 .progress {
-  height: 100%;
-  background: linear-gradient(90deg,#3ad29f ,#6c7cff);
-  transition: width 0.6s ease-in-out;
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(-10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-@keyframes fadeInUp {
-  from {opacity: 0; transform: translateY(15px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-
-/* Toolbar */
-    .toolbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 2px solid #333;
-      z-index: 1000;
-    }
-
-    .toolbar i {
-      color: #aaa;
-      font-size: 30px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .toolbar i:hover {
-      color: #fff;
-    }
-
-    /* Plus button container */
-    .plus-container {
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    .plus-btn {
-      width: 80px;
-      height: 80px;
-      background: #007bff; /* 🔵 Blue button */
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 28px;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      position: relative;
-      z-index: 200;
-      transition: transform 0.3s ease;
-    }
-
-    /* Options above */
-    .options {
-      position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 15px;
-      pointer-events: none;
-    }
-
-    .option {
-      width: 85px;
-      height: 85px;
-      background: #444;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 20px;
-      opacity: 0;
-      transform: translateY(40px) scale(0.5) rotate(0deg);
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-margin-bottom: 25px;
-    }
-
-    .plus-container.active .option {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0) scale(1) rotate(360deg);
-    }
-
-    /* File */
-    .plus-container.active .option:nth-child(1) {
-      transition-delay: 0.05s;
-    }
-
-    /* Folder */
-    .plus-container.active .option:nth-child(2) {
-      transition-delay: 0.1s;
-    }
-
-
-
-.div{
- 
-      
-      
-     
-      width:90%;
-      max-width:var(--max-width);
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 22px;
-      align-items:center;
-      top:14px;
-      background-color: rgba(14, 42, 71, 0.6)
-;
-      border-radius:12px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 6px 30px rgba(2,6,23,0.35);
-      border: 1px solid rgba(255,255,255, 0.5);
-      
-}
-
-.badge2{display:inline-flex;align-items:center;gap:6px;background:#e9f2ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid #d3e6ff;
-margin-bottom: 5px;
-}
-/* general button base */
-.card-content button {
-  margin-top: 0.5rem;
-  margin-right: 0.4rem;
-  padding: 0.45rem 0.9rem;
-  font-size: 0.8rem;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.3s ease;
-  color: #fff;
-}
-
-/* OPEN (primary action) */
-.card-content button.open {
   background: var(--primary);
-}
-.card-content button.open:hover {
-  background: var(--accent);
-  transform: translateY(-2px);
+  height: 100%;
+  border-radius: 8px;
 }
 
-/* DUPLICATE */
-.card-content button.duplicate {
-  background: #6c63ff; /* purple */
-}
-.card-content button.duplicate:hover {
-  background: #574bdb;
+.option i{
+transform: rotateX(180deg);
 }
 
-/* MOVE */
-.card-content button.move {
-  background: #00b894; /* teal green */
-}
-.card-content button.move:hover {
-  background: #00997b;
+.highlight {
+  color: yellow; 
 }
 
-/* DELETE */
-.card-content button.delete {
-  background: #e53935; /* red */
-}
-.card-content button.delete:hover {
-  background: #c62828;
+.highlight span{
+color: yellow;
 }
 
-/* EDIT — icon only */
-.card-content button.edit {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  color: var(--primary-dark);
-  padding: 6px;
-  font-size: 1rem;
-}
-.card-content button.edit:hover {
-  color: var(--accent);
-  transform: scale(1.2);
-}
-.controls {
-  
-  border: 1px solid #e0e6ed;
-  border-radius: 0px;
-  background: #fff;
-margin-left: -30px;
-margin-right: -27px;
 
-
-}
-
-/* search box */
-.search-box {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  max-width: 350px;
-  background: #f7f9fc;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #dce3eb;
-  border-radius: 6px;
-}
-
-.search-box i {
-  margin-right: 0.5rem;
-  color: #0057d9;
-}
-
-.search-box input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 0.9rem;
-  color: #333;
-  outline: none;
-}
-
-.search-box input::placeholder {
-  color: #888;
-}
-
-/* filters */
-.filters {
-  display: flex;
-  gap: 0.6rem;
-}
-
-/* filter group */
-.filter {
-  display: flex;
-  align-items: center;
-  background: #f7f9fc;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid #dce3eb;
-  border-radius: 6px;
-}
-
-.filter i {
-  margin-right: 0.4rem;
-  color: #0057d9;
-}
-
-/* selects */
-.filter select {
-  border: none;
-  background: transparent;
-  font-size: 0.9rem;
-  color: #333;
-  outline: none;
-  cursor: pointer;
-}
-
-h1 {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 700;
-  color: #0E2A47;
-      border-left: 5px solid #A66944;
-padding: 5px;
-      
-}
   </style>
+
+  <script>
+    // PWA
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js")
+          .catch(err => console.error("Service worker error:", err));
+      });
+    }
+
+  </script>
 </head>
-<body>
+<body >
 
-  <div class="toolbar" style=" position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-      
-      align-items: left;
-      border-top: 2px solid #333;
-text-align: left;
-      z-index: 1001;">
-  <div class="brand" style="display:flex;;align-items:left;gap:12px;font-weight:800; margin-left: -300px;
-      letter-spacing:0.6px;
-"aria-hidden="true">
-<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
-    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
-
-</div>
+  <!-- ===================== HEADER ===================== -->
+  <div class="topbar">
+    <div class="brand">
+      <img class="logo" src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" alt="">
       <div>
-        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
-        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+        <h1>Avanti <span>Teams</span></h1>
+        <div style="font-size:12px; color:#b6c8dc; font-weight:700">Design • Develop • Evolve</div>
       </div>
     </div>
 
+    <button class="back-btn" onclick="window.history.back()">
+      <i class="fas fa-arrow-left"></i> Back
+    </button>
   </div>
 
- 
+<div style="min-height: 100%;">
+<img src="https://ik.imagekit.io/3mtmeexff/67EC8A39-BB5C-437D-84CC-901761CB5DB2_NiFYux6W47.png" style="width: 100%; height: auto;">
 
-  <!-- Folders Section -->
-  
- <div class="controls div" style="display:flex; flex-wrap:wrap; gap:10px; padding:10px; min-width:99vw; box-sizing:border-box; background:#f9f9f9; border-radius:0px; align-items:center; position: sticky;  z-index: 1000; padding-top: 85px; margin-bottom: 20px;">
-<h1 style="flex-basis:100%; margin:0 0 10px 0; font-size:35px; ">Folders</h1>
-  <div class="search-box" >
- <i class="fa fa-search" style="margin-right:5px; color:#555;"></i>
-<input type="text" id="folderSearch" placeholder="Search folders..." 
-         style="flex:1 1 150px; min-width:120px; max-width:100%; padding:5px 10px; border:0px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;"></div>
+  <!-- ===================== SUMMARY (TOTALS & ARCHIVES) ===================== -->
+  <div class="total-pill">Total active Projects: <span id="totalAll">0</span></div>
+<div>
 
- <div class="filter" ><i class="fa fa-layer-group" style="margin-right:5px; color:#555;"></i> <select id="folderFilter" 
-          style="flex:1 1 120px; min-width:100px; max-width:100%; padding:5px 10px; border:0px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;">
-    <option value="">All</option>
-    <option value="Company">Company</option>
-    <option value="Individual">Individual</option>
-  </select>
+  <div class="stats">
+
+    <div class="stat">
+      <i class="fas fa-folder"></i>
+      <div><p class="k" id="totalFolders">0</p><p class="t">Folders</p></div>
+    </div>
+    <div class="stat">
+      <i class="fas fa-file"></i>
+      <div><p class="k" id="totalProjects">0</p><p class="t">Files</p></div>
+    </div>
+    <div class="stat">
+      <i class="fas fa-archive"></i>
+      <div><p class="k" id="totalArchivedFolders">0</p><p class="t">Archived Folders</p></div>
+    </div>
+    <div class="stat">
+      <i class="fas fa-archive"></i>
+      <div><p class="k" id="totalArchivedProjects">0</p><p class="t">Archived Projects</p></div>
+    </div>
+
+  </div>
+
 </div>
-<div class="filter" >
- <i class="fa fa-sort-amount-down" style="margin-right:5px; color:#555;"></i>
-  <select id="folderSort" 
-          style="flex:1 1 120px; min-width:100px; max-width:100%; padding:5px 10px; border:0px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;">
-    <option value="az">Sort A–Z</option>
-    <option value="za">Sort Z–A</option>
-  </select></div>
-
-  <button class="filter"onclick="location.href='all-folders.html'" 
-          >
-    All Folders
-  </button>
-
 </div>
-<div style="min-height: 70vh;">
- <div class="card-container" id="foldersContainer" 
-     style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; box-sizing: border-box; margin: 0; margin-top: 50px;">
-</div></div>
+
+  <!-- ===================== TABS ===================== -->
 
 
-  <div style="padding-top: 85px; position: sticky; top: 0; z-index: 1000;"><!-- Projects Section -->
-<div class="controls" 
-     style="position:sticky; top:0; z-index:1000; display:flex; flex-wrap:wrap; gap:10px; padding:10px; max-width:100vw; box-sizing:border-box; background:#f9f9f9; border-radius:0px; align-items:center; padding-top: 12px; ">
-  
-  <h1 style="flex-basis:100%; margin:0 0 10px 0; font-size:35px; ">Projects</h1>
+  <!-- ===================== FOLDERS TAB ===================== -->
+  <div id="foldersTab" class="tab-content active">
+    <div class="controls">
+      <div class="search">
+        <i class="fa fa-search"></i>
+        <input id="folderSearch" placeholder="Search folders…" />
+      </div>
+      <select id="folderFilter" class="select">
+        <option value="">All</option>
+        <option value="Company">Company</option>
+        <option value="Individual">Individual</option>
+      </select>
+      <select id="folderSort" class="select">
+        <option value="az">Sort A–Z</option>
+        <option value="za">Sort Z–A</option>
+      </select>
+      <a class="button-link" href="all-folders.html"><i class="fa fa-layer-group"></i> All Folders</a>
+  <div class="tabs">
+    <button style="background: #fff; color: #2c3e50; border: 1px solid var(--chip-border); border-bottom: 2px solid #fff; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); z-index: 2; "class="tab-btn active" data-tab="foldersTab"><i class="fas fa-folder"></i>&nbsp;Folders</button>
+    <button class="tab-btn" data-tab="projectsTab"><i class="fas fa-file"></i>&nbsp;Projects</button>
+  </div>
+    </div>
 
-  <div class="search-box" style="flex:1 1 450px; min-width:220px; max-width:100%; padding:5px 10px; border:1px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;">
-    <i class="fa fa-search" style="margin-right:5px; color:#555;"></i>
-    <input type="text" id="projectSearch" placeholder="Search projects..." style="flex:1; border:none; outline:none; background:transparent; font-size:14px;">
+
+    <div style="padding-bottom: 200px;" id="foldersContainer" class="grid"></div>
   </div>
 
-  <div class="filter" style="flex:1 1 150px; min-width:120px; max-width:100%; padding:5px 10px; border:1px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;"">
-    <i class="fa fa-sort-amount-down" style="margin-right:5px; color:#555;"></i>
-    <select id="projectSort" style="flex:1; border:none; outline:none; background:transparent; font-size:14px;">
-      <option value="asc">Completion Asc</option>
-      <option value="desc">Completion Desc</option>
-    </select>
-  </div>
 
-  <div class="filters" style="display:flex; flex-wrap:wrap; gap:10px; flex:2 1 300px;">
-    <div class="filter" style="flex:1 1 150px; min-width:120px; max-width:100%; padding:5px 10px; border:1px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;">
-      <i class="fa fa-tasks" style="margin-right:5px; color:#555;"></i>
-      <select id="projectStatus" style="flex:1; border:none; outline:none; background:transparent; font-size:14px;">
+  <!-- ===================== PROJECTS TAB ===================== -->
+  <div id="projectsTab" class="tab-content">
+    <div class="controls">
+      <div class="search">
+        <i class="fa fa-search"></i>
+        <input id="projectSearch" placeholder="Search projects…" />
+      </div>
+
+      <select id="projectSort" class="select">
+        <option value="asc">Completion ↑</option>
+        <option value="desc">Completion ↓</option>
+      </select>
+
+      <select id="projectStatus" class="select">
         <option value="">All Status</option>
-        <option value="Fact finding">Fact finding</option>
-        <option value="Design">Design</option>
-        <option value="Development">Development</option>
-        <option value="Testing & Debugging">Testing & Debugging</option>
-        <option value="Implementation">Implementation</option>
-        <option value="Complete">Complete</option>
+        <option>Fact finding</option>
+        <option>Design</option>
+        <option>Development</option>
+        <option>Testing & Debugging</option>
+        <option>Implementation</option>
+        <option>Complete</option>
       </select>
-    </div>
 
-    <div class="filter" style="flex:1 1 150px; min-width:120px; max-width:100%; padding:5px 10px; border:1px solid #ddd; border-radius:5px; font-size:14px; box-sizing:border-box;">
-      <i class="fa fa-layer-group" style="margin-right:5px; color:#555;"></i>
-      <select id="projectSize" style="flex:1; border:none; outline:none; background:transparent; font-size:14px;">
+      <select id="projectSize" class="select">
         <option value="">All Sizes</option>
-        <option value="Small">Small</option>
-        <option value="Medium">Medium</option>
-        <option value="Large">Large</option>
+        <option>Small</option>
+        <option>Medium</option>
+        <option>Large</option>
       </select>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="foldersTab"><i class="fas fa-folder"></i>&nbsp;Folders</button>
+    <button style="background: #fff; color: #2c3e50; border: 1px solid var(--chip-border); border-bottom: 2px solid #fff; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); z-index: 2; " class="tab-btn" data-tab="projectsTab"><i class="fas fa-file"></i>&nbsp;Projects</button>
+  </div>
     </div>
+
+    <div style="padding-bottom: 200px;"id="projectsContainer" class="grid"></div>
   </div>
-</div>
 
-    
-  </div>
-</div>
-</div>
-  <div class="card-container" id="projectsContainer"></div>
+  <!-- ===================== BOTTOM BAR ===================== -->
+  <div class="toolbar">
+   <div class="toolbar-item" id="Home">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i><span>Home</span></div>
 
- <div style="margin-bottom: 100px;" class="summary" id="summary">Total Projects: 0</div>
+  <div class="toolbar-item">
+    <i class="fas fa-envelope" onclick="window.location='select-template.html'"></i> <span>Newsletters</span></div>
 
- <div class="toolbar">
-    <i class="fas fa-home" onclick="window.location='index.html'"></i>
-    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
-
-   <div class="plus-container">
+    <div class="plus-container">
       <button class="plus-btn"><i class="fas fa-plus"></i></button>
       <div class="options">
-        <div onclick="window.location='file-create.html'" class="option">
-  <i class="fas fa-file"></i>
-</div>
-
-        <div onclick="window.location='folder-create1.html'" class="option"><i class="fas fa-folder"></i></div>
+        <div class="option" onclick="window.location='create-project.html'"><i class="fas fa-file"></i></div>
+        <div class="option" onclick="window.location='folder-create1.html'"><i class="fas fa-folder"></i></div>
       </div>
     </div>
-   
-    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
-    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+ <div class="toolbar-item">
+    <i class="fas fa-chart-line" onclick="window.location='analytics.html'"></i> <span>Analytics</span></div>
+
+ <div class="toolbar-item">
+    <i class="fas fa-database" onclick="window.location='client-list.html'"></i><span>Database</span> </div>
   </div>
+
+  <!-- ===================== MOVE MODAL ===================== -->
+  <div id="moveModal" class="hidden" style="position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,.55); display:grid; place-items:center;">
+    <div style="background:var(--card); border:1px solid var(--card-border); color:#fff; width:min(92%,420px); border-radius:16px; padding:16px; box-shadow:var(--shadow)">
+      <h3 style="margin:0 0 10px; color:#a7d3ff;">Move Project</h3>
+      <label for="moveFolderSelect" style="font-size:.9rem; color:#cfe2ff;">Select folder</label>
+      <select id="moveFolderSelect" class="select" style="width:100%; margin-top:6px;"></select>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+        <button id="moveConfirmBtn" class="btn"><i class="fa fa-check"></i> Move</button>
+        <button id="moveCancelBtn" class="btn"><i class="fa fa-times"></i> Cancel</button>
+      </div>
     </div>
   </div>
-<!-- ===== Move Project Modal ===== -->
-<div id="moveModal" style="
-  display:none; position:fixed; inset:0; z-index:2000;
-  background:rgba(0,0,0,0.6); align-items:center; justify-content:center;">
-  <div style="background:#0F2E4D; color:#fff; width:90%; max-width:380px;
-              border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.45)">
-    <h3 style="margin:0 0 10px 0; color:#5DB7DE;">Move Project</h3>
-    <label for="moveFolderSelect" style="font-size:.9rem; color:#cbd5e1;">Select folder</label>
-    <select id="moveFolderSelect" style="width:100%; margin-top:6px; padding:10px;
-            border-radius:10px; border:1px solid #334155; background:#1e293b; color:#fff;"></select>
-    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
-      <button id="moveConfirmBtn" style="background:#2E9CCA; color:#fff; padding:8px 12px; border:0; border-radius:10px; cursor:pointer;">Move</button>
-      <button id="moveCancelBtn" style="background:#334155; color:#fff; padding:8px 12px; border:0; border-radius:10px; cursor:pointer;">Cancel</button>
-    </div>
-  </div>
-</div>
-
-
 <script>
-// --- helpers ---
-function parseDateFlexible(v){
-  if(!v && v!==0) return null;
-  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
 
-  // numeric timestamp (ms)
-  const num = Number(v);
-  if (!Number.isNaN(num) && String(v).trim() !== "") {
-    const d = new Date(num);
-    if (!isNaN(d.getTime())) return d;
-  }
-
-  // ISO-like  YYYY-MM-DD or YYYY-MM-DDTHH:mm
-  if (/^\d{4}-\d{2}-\d{2}/.test(String(v))) {
-    const d = new Date(v);
-    if (!isNaN(d.getTime())) return d;
-  }
-
-  // DD/MM/YYYY
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(v))) {
-    const [dd,mm,yyyy] = String(v).split("/").map(Number);
-    const d = new Date(yyyy, mm-1, dd);
-    if (!isNaN(d.getTime())) return d;
-  }
-
-  // DD-MM-YYYY
-  if (/^\d{2}-\d{2}-\d{4}$/.test(String(v))) {
-    const [dd,mm,yyyy] = String(v).split("-").map(Number);
-    const d = new Date(yyyy, mm-1, dd);
-    if (!isNaN(d.getTime())) return d;
-  }
-
-  return null;
-}
-function addDays(date, days){
-  const d = new Date(date.getTime());
-  d.setDate(d.getDate() + Number(days||0));
-  return d;
-}
-function toYMD(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,"0");
-  const day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-async function sumExtensionsDays(projectKey){
-  // Sums all extensions.amount across all commits (handles arrays or objects)
-  const commitsSnap = await db.ref(`project_files/${projectKey}/Commits`).get();
-  if (!commitsSnap.exists()) return 0;
-
-  let total = 0;
-  commitsSnap.forEach(commitSnap=>{
-    const exts = commitSnap.child("extensions").val();
-    if (!exts) return;
-
-    if (Array.isArray(exts)) {
-      exts.forEach(it=>{
-        if (it && it.amount!=null) total += Number(it.amount)||0;
-      });
-    } else if (typeof exts === "object") {
-      Object.keys(exts).forEach(k=>{
-        const it = exts[k];
-        if (it && it.amount!=null) total += Number(it.amount)||0;
-      });
-    }
-  });
-  return total;
-}
 </script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
-    authDomain: "users-66be4.firebaseapp.com",
-    databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
-    projectId: "users-66be4",
-    storageBucket: "users-66be4.appspot.com",
-    messagingSenderId: "776585122050",
-    appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  const summaryEl = document.getElementById("summary");
-  const foldersContainer = document.getElementById("foldersContainer");
-  const projectsContainer = document.getElementById("projectsContainer");
-
-  let allFolders = [];
-  let allProjects = [];
-  let moveTargetId = null;
-
-  function renderSummary() {
-    const folderProjects = allFolders.reduce((sum,f)=> sum + (f.projectCount||0),0);
-    summaryEl.textContent = "Total Projects: " + (folderProjects + allProjects.length);
-  }
-
-  // Render Folders
-  function renderFolders() {
-    let filtered = [...allFolders];
-    const search = document.getElementById("folderSearch").value.toLowerCase();
-    const filter = document.getElementById("folderFilter").value;
-    const sort = document.getElementById("folderSort").value;
-
-    if(search) filtered = filtered.filter(f => (f.name||"").toLowerCase().includes(search));
-    if(filter) filtered = filtered.filter(f => f.for === filter);
-    if(sort==="az") filtered.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
-    if(sort==="za") filtered.sort((a,b)=> (b.name||"").localeCompare(a.name||""));
-
-    foldersContainer.innerHTML = "";
-    filtered.slice(0,6).forEach(f=>{
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${f.image||'https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293'}" alt="">
-        <div class="card-content">
-          <h4>${f.name||'(no name)'}</h4>
-          <p>For: ${f.for||'-'}</p>
-          <p><i class="fa fa-user"></i> ${f.for==='Company' ? (f.company||'') : (f.client||'')}</p>
-          <p class="badge2">Projects: ${f.projectCount||0}</p>
-          <button class="open" onclick="openFolder('${f.id}')"><i class="fa fa-folder-open"></i> </button>
-          <button class="delete" onclick="deleteFolder('${f.id}')"><i class="fa fa-trash"></i></button>
-        </div>`;
-      foldersContainer.appendChild(card);
-    });
-  }
-
-  // Render Projects
-  function renderProjects() {
-    let filtered = [...allProjects];
-    const search = document.getElementById("projectSearch").value.toLowerCase();
-    const status = document.getElementById("projectStatus").value;
-    const size = document.getElementById("projectSize").value;
-    const sort = document.getElementById("projectSort").value;
-
-    if(search) filtered = filtered.filter(p => (p.name||"").toLowerCase().includes(search));
-    if(status) filtered = filtered.filter(p => p.status === status);
-    if(size) filtered = filtered.filter(p => p.size === size);
-    if(sort==="asc") filtered.sort((a,b)=> (a.percentage||0)-(b.percentage||0));
-    if(sort==="desc") filtered.sort((a,b)=> (b.percentage||0)-(a.percentage||0));
-
-    projectsContainer.innerHTML = "";
-    filtered.forEach(p=>{
-      const pct = Number(p.percentage||0);
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img src="${p.image||'logo1.jpeg'}" alt="">
-        <div class="card-content">
-          <h4>${p.name||'(no name)'}</h4>
-          <p>${p.description||""}</p>
-          <p class="badge2">${p.status||"-"}</p> <p class="badge2">${p.size||"-"}</p>
-          <b><p>Start: ${p.startDate||"-"}, Due: ${p.dueDate||"-"}</p></b>
-          <div class="progress-bar"><div class="progress" style="width:${pct}%"></div></div>
-          <p>${pct}% complete</p>
-        <div class="card-content">
-  <button class="open" onclick="openProject('${p.id}')"><i class="fa fa-folder-open"></i> Open</button>
-  <button class="duplicate" onclick="duplicateProject('${p.id}')"><i class="fa fa-copy"></i> Duplicate</button>
-  <button class="edit" onclick="editProject('${p.id}')"><i class="fa fa-pen"></i></button>
-  <button class="move" onclick="moveProject('${p.id}')"><i class="fa fa-arrows-alt"></i> Move</button>
-  <button class="delete" onclick="deleteProject('${p.id}')"><i class="fa fa-trash"></i> Delete</button>
-</div>`;
-      projectsContainer.appendChild(card);
-    });
-  }
-
-  // Load folders
-  db.ref("folders").on("value", snap=>{
-    allFolders=[];
-    snap.forEach(folderSnap=>{
-      const f = folderSnap.val() || {};
-      allFolders.push({
-        id: folderSnap.key,
-        name: f.FolderName || f.name || "",
-        for: f.For || "",
-        company: f.CompanyName || "",
-        client: f.ClientName || "",
-        sponsor: f.Sponsor || "",
-        occupation: f.Occupation || "",
-        image: f.ImageURL || "",
-        projectCount: f.projects ? Object.keys(f.projects).length : 0
-      });
-    });
-    renderFolders();
-    renderSummary();
-  });
-
-  // Load projects
-  db.ref("project_files").on("value", async snap=>{
-  const temp = [];
-  const jobs = [];
-
-  snap.forEach(pSnap=>{
-    const p = pSnap.val() || {};
-    const key = pSnap.key;
-
-    const base = {
-      id: key,
-      name: p.ProjectName || p.name || "",
-      size: p.Size || "",
-      status: p.Status || "",
-      description: p.Description || "",
-      percentage: typeof p.Percentage === "number" ? p.Percentage : Number(p.Percentage||0),
-      startDate: p.StartDate || "",
-      duration: Number(p.Duration || 0),
-      image: p.ImageURL || "",
-      for: p.For || "",
-      companyName: p.CompanyName || "",
-      clientName: p.ClientName || "",
-      sponsor: p.Sponsor || "",
-      occupation: p.Occupation || "",
-      folderId: p.folderId || null
-    };
-
-    jobs.push((async ()=>{
-      const extDays = await sumExtensionsDays(key);   // ← sum commits’ extensions
-      const start = parseDateFlexible(base.startDate);
-
-      if (start){
-        const due = addDays(start, (base.duration||0) + extDays);
-        base.dueDate = toYMD(due);
-      } else {
-        // fall back to stored DueDate if StartDate is missing/unparsable
-        base.dueDate = p.DueDate || "";
+  <!-- ===================== APP SCRIPT ===================== -->
+  <script>
+    /* ---------- helpers (unchanged from your logic) ---------- */
+    function parseDateFlexible(v){
+      if(!v && v!==0) return null;
+      if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+      const num = Number(v);
+      if (!Number.isNaN(num) && String(v).trim() !== "") {
+        const d = new Date(num);
+        if (!isNaN(d.getTime())) return d;
       }
-
-      temp.push(base);
-    })());
-  });
-
-  await Promise.all(jobs);
-  allProjects = temp;
-  renderProjects();
-  renderSummary();
-});
-
-
-  // ---------- Navigation / misc
-  function openFolder(id){ location.href="folder.html?folderId="+id; }
-  function deleteFolder(folderId) {
-  if (!confirm("Are you sure you want to delete this folder and all its projects?")) return;
-
-  db.ref("folders/" + folderId).remove()
-    .then(() => alert("Folder deleted successfully"))
-    .catch(err => alert("Error deleting folder: " + err.message));
-}
-
-  function openProject(id){ location.href="project.html?name="+id; }
-  function editProject(id){ location.href="edit-file.html?name="+id; }
-
-  // ---------- DUPLICATE (fixed: writes correct schema)
-// ===== DUPLICATE =====
-function duplicateProject(projectName) {
-  const projectRef = db.ref("project_files/" + projectName);
-  projectRef.once("value").then(snapshot => {
-    if (!snapshot.exists()) {
-      alert("Project not found");
-      return;
+      if (/^\d{4}-\d{2}-\d{2}/.test(String(v))) {
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(v))) {
+        const [dd,mm,yyyy] = String(v).split("/").map(Number);
+        const d = new Date(yyyy, mm-1, dd);
+        if (!isNaN(d.getTime())) return d;
+      }
+      if (/^\d{2}-\d{2}-\d{4}$/.test(String(v))) {
+        const [dd,mm,yyyy] = String(v).split("-").map(Number);
+        const d = new Date(yyyy, mm-1, dd);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
     }
-
-    const data = snapshot.val();
-
-    // Start with "(Copy)" and increment if necessary
-    let baseName = projectName + " (Copy)";
-    let newName = baseName;
-    let counter = 2;
-
-    function trySave() {
-      db.ref("project_files/" + newName).once("value").then(snap => {
-        if (snap.exists()) {
-          // Already exists, increment counter
-          newName = projectName + " (Copy " + counter + ")";
-          counter++;
-          trySave();
-        } else {
-          data.ProjectName = newName;
-          db.ref("project_files/" + newName).set(data)
-            
-            .catch(err => alert("Error duplicating: " + err.message));
+    function addDays(date, days){
+      const d = new Date(date.getTime());
+      d.setDate(d.getDate() + Number(days||0));
+      return d;
+    }
+    function toYMD(d){
+      const y=d.getFullYear();
+      const m=String(d.getMonth()+1).padStart(2,"0");
+      const day=String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+    async function sumExtensionsDays(projectKey){
+      const commitsSnap = await db.ref(`project_files/${projectKey}/Commits`).get();
+      if (!commitsSnap.exists()) return 0;
+      let total = 0;
+      commitsSnap.forEach(commitSnap=>{
+        const exts = commitSnap.child("extensions").val();
+        if (!exts) return;
+        if (Array.isArray(exts)) {
+          exts.forEach(it=>{ if (it && it.amount!=null) total += Number(it.amount)||0; });
+        } else if (typeof exts === "object") {
+          Object.keys(exts).forEach(k=>{
+            const it = exts[k];
+            if (it && it.amount!=null) total += Number(it.amount)||0;
+          });
         }
       });
+      return total;
     }
 
-    trySave();
-  });
-}
+    /* ---------- Firebase ---------- */
+    const firebaseConfig = {
+      apiKey: "AIzaSyAw7L6TJtF1W0PwfStEJUC4CebUyMdQU9w",
+      authDomain: "users-66be4.firebaseapp.com",
+      databaseURL: "https://users-66be4-default-rtdb.firebaseio.com",
+      projectId: "users-66be4",
+      storageBucket: "users-66be4.appspot.com",
+      messagingSenderId: "776585122050",
+      appId: "1:776585122050:web:3f452a1f16dc36ee1ef21b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// ===== MOVE =====
-let moveTargetName = null;
 
-function moveProject(projectName) {
-  moveTargetName = projectName;
+    /* ---------- State ---------- */
+    const foldersContainer = document.getElementById("foldersContainer");
+    const projectsContainer = document.getElementById("projectsContainer");
 
-  const select = document.getElementById("moveFolderSelect");
-  select.innerHTML = "";
-  allFolders.forEach(f => {
-    const opt = document.createElement("option");
-    opt.value = f.id;
-    opt.textContent = f.name + " (" + f.for + ")";
-    select.appendChild(opt);
-  });
+    let allFolders = [];
+    let allProjects = [];
+    let moveTargetName = null;
 
-  document.getElementById("moveModal").style.display = "flex";
-}
+    /* ---------- Tabs ---------- */
+    document.querySelectorAll(".tab-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(t=>t.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+      });
+    });
 
-function confirmMove() {
-  if (!moveTargetName) return;
 
-  const folderId = document.getElementById("moveFolderSelect").value;
 
-  const projectRef = db.ref("project_files/" + moveTargetName);
-  projectRef.once("value").then(snapshot => {
-    if (!snapshot.exists()) {
-      alert("Project not found");
-      return;
+    /* ---------- Summary ---------- */
+    function renderSummary() {
+      const folderProjects = allFolders.reduce((sum,f)=> sum + (f.projectCount||0),0);
+      document.getElementById("totalFolders").textContent = allFolders.length;
+      document.getElementById("totalProjects").textContent = allProjects.length;
+      document.getElementById("totalAll").textContent = allProjects.length + folderProjects;
     }
 
-    const data = snapshot.val();
+    db.ref("archive_projects").on("value", snap=>{
+      document.getElementById("totalArchivedProjects").textContent = snap.exists() ? snap.numChildren() : 0;
+    });
+    db.ref("archive_folders").on("value", snap=>{
+      document.getElementById("totalArchivedFolders").textContent = snap.exists() ? snap.numChildren() : 0;
+    });
 
-    // Move under folder
-    db.ref("folders/" + folderId + "/projects/" + moveTargetName)
-      .set(data)
-      .then(() => {
-        // Delete from project_files
-        return projectRef.remove();
-      })
-      .then(() => {
-        alert("Project moved into folder: " + folderId);
-        closeMoveModal();
-      })
-      .catch(err => alert("Error moving: " + err.message));
-  });
-}
 
-function closeMoveModal() {
-  document.getElementById("moveModal").style.display = "none";
-  moveTargetName = null;
-}
-  // ---------- DELETE (improved: also removes folder reference if present)
-  async function deleteProject(id){
+
+    /* ---------- Renderers (cards show images) ---------- */
+    function folderCard(f){
+      const img = f.image || 'https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293';
+      return `
+        <div class="card">
+          <img class="thumb" src="${img}" alt="">
+          <div class="card-body">
+            <div class="kicker"><i class="fa fa-folder"></i> Folder</div>
+            <h3 class="title">${f.name || '(no name)'}</h3>
+            <div class="meta">
+              <span class="badge gray">For: ${f.for || '-'}</span>
+              <span class="badge">Projects: ${f.projectCount || 0}</span>
+            </div>
+            <p class="desc">
+              ${f.for==='Company' ? `<i class="fa fa-building"></i> ${f.company||''}` : `<i class="fa fa-user"></i> ${f.client||''}`}
+              ${f.sponsor ? ` • Sponsor: ${f.sponsor}` : ``}
+            </p>
+            <div class="actions">
+              <button class="btn" onclick="openFolder('${f.id}')"><i class="fa fa-folder-open"></i>Open</button>
+              <button class="btn" onclick="deleteFolder('${f.id}')"><i class="fa fa-trash"></i>Delete</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function projectCard(p){
+      const pct = Number(p.percentage||0);
+      const img = p.image || 'https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293';
+      return `
+        <div class="card">
+          <img class="thumb" src="${img}" alt="">
+          <div class="card-body">
+            <div class="kicker"><i class="fa fa-file"></i> Project</div>
+            <h3 class="title">${p.name || '(no name)'}</h3>
+
+            <div class="meta">
+              <span class="badge gray">${p.status || '-'}</span>
+              <span class="badge gray">${p.size || '-'}</span>
+            </div>
+
+            ${p.description ? `<p class="desc">${p.description}</p>` : ``}
+            <div class="dates"><b>Start:</b> ${p.startDate||"-"} &nbsp;•&nbsp; <b>Due:</b> ${p.dueDate||"-"}</div>
+
+            <div class="progressbar"><span style="width:${Math.max(0, Math.min(100, pct))}%"></span></div>
+            <div class="dates">${pct}% complete</div>
+
+            <div class="actions">
+              <button class="btn" onclick="openProject('${p.id}')"><i class="fa fa-folder-open"></i>Open</button>
+              <button class="btn" onclick="duplicateProject('${p.id}')"><i class="fa fa-copy"></i>Duplicate</button>
+              <button class="btn" onclick="editProject('${p.id}')"><i class="fa fa-pen"></i>Edit</button>
+              <button class="btn" onclick="moveProject('${p.id}')"><i class="fa fa-arrows-alt"></i>Move</button>
+              <button class="btn" onclick="deleteProject('${p.id}')"><i class="fa fa-trash"></i>Delete</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderFolders() {
+      let filtered = [...allFolders];
+      const search = (document.getElementById("folderSearch").value||"").toLowerCase();
+      const filter = document.getElementById("folderFilter").value;
+      const sort = document.getElementById("folderSort").value;
+
+      if(search) filtered = filtered.filter(f => (f.name||"").toLowerCase().includes(search));
+      if(filter) filtered = filtered.filter(f => f.for === filter);
+      if(sort==="az") filtered.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+      if(sort==="za") filtered.sort((a,b)=> (b.name||"").localeCompare(a.name||""));
+
+      foldersContainer.innerHTML = filtered.map(folderCard).join("");
+    }
+
+    function renderProjects() {
+      let filtered = [...allProjects];
+      const search = (document.getElementById("projectSearch").value||"").toLowerCase();
+      const status = document.getElementById("projectStatus").value;
+      const size = document.getElementById("projectSize").value;
+      const sort = document.getElementById("projectSort").value;
+
+      if(search) filtered = filtered.filter(p => (p.name||"").toLowerCase().includes(search));
+      if(status) filtered = filtered.filter(p => p.status === status);
+      if(size) filtered = filtered.filter(p => p.size === size);
+      if(sort==="asc") filtered.sort((a,b)=> (a.percentage||0)-(b.percentage||0));
+      if(sort==="desc") filtered.sort((a,b)=> (b.percentage||0)-(a.percentage||0));
+
+      projectsContainer.innerHTML = filtered.map(projectCard).join("");
+    }
+
+    /* ---------- Data listeners ---------- */
+    db.ref("folders").on("value", snap=>{
+      allFolders = [];
+      snap.forEach(folderSnap=>{
+        const f = folderSnap.val() || {};
+        allFolders.push({
+          id: folderSnap.key,
+          name: f.FolderName || f.name || "",
+          for: f.For || "",
+          company: f.CompanyName || "",
+          client: f.ClientName || "",
+          sponsor: f.Sponsor || "",
+          occupation: f.Occupation || "",
+          image: f.ImageURL || "",
+          projectCount: f.projects ? Object.keys(f.projects).length : 0
+        });
+      });
+      renderFolders();
+      renderSummary();
+    });
+
+    db.ref("project_files").on("value", async snap=>{
+      const temp = [];
+      const jobs = [];
+      snap.forEach(pSnap=>{
+        const p = pSnap.val() || {};
+        const key = pSnap.key;
+        const base = {
+          id: key,
+          name: p.ProjectName || p.name || "",
+          size: p.Size || "",
+          status: p.Status || "",
+          description: p.Description || "",
+          percentage: typeof p.Percentage === "number" ? p.Percentage : Number(p.Percentage||0),
+          startDate: p.StartDate || "",
+          duration: Number(p.Duration || 0),
+          image: p.ImageURL || "",
+          for: p.For || "",
+          companyName: p.CompanyName || "",
+          clientName: p.ClientName || "",
+          sponsor: p.Sponsor || "",
+          occupation: p.Occupation || "",
+          folderId: p.folderId || null
+        };
+        jobs.push((async ()=>{
+          const extDays = await sumExtensionsDays(key);
+          const start = parseDateFlexible(base.startDate);
+          if (start){
+            const due = addDays(start, (base.duration||0) + extDays);
+            base.dueDate = toYMD(due);
+          } else {
+            base.dueDate = p.DueDate || "";
+          }
+          temp.push(base);
+        })());
+      });
+      await Promise.all(jobs);
+      allProjects = temp;
+      renderProjects();
+      renderSummary();
+    });
+
+    /* ---------- Actions ---------- */
+    function openFolder(id){ location.href="folder.html?folderId="+id; }
+    function deleteFolder(folderId) {
+      if (!confirm("Delete this folder and all its projects?")) return;
+      db.ref("folders/" + folderId).remove()
+        .then(() => alert("Folder deleted successfully"))
+        .catch(err => alert("Error deleting folder: " + err.message));
+    }
+
+    function openProject(id){ location.href="project.html?name="+id; }
+    function editProject(id){ location.href="edit-file.html?name="+id; }
+
+    function duplicateProject(projectName) {
+      const projectRef = db.ref("project_files/" + projectName);
+      projectRef.once("value").then(snapshot => {
+        if (!snapshot.exists()) return alert("Project not found");
+        const data = snapshot.val();
+        let baseName = projectName + " (Copy)";
+        let newName = baseName;
+        let counter = 2;
+        function trySave() {
+          db.ref("project_files/" + newName).once("value").then(snap => {
+            if (snap.exists()) {
+              newName = projectName + " (Copy " + counter + ")";
+              counter++;
+              trySave();
+            } else {
+              data.ProjectName = newName;
+              db.ref("project_files/" + newName).set(data)
+                .catch(err => alert("Error duplicating: " + err.message));
+            }
+          });
+        }
+        trySave();
+      });
+    }
+
+async function deleteProject(id){
     try{
       if(!confirm("Delete this project?")) return;
 
@@ -1032,39 +1065,74 @@ function closeMoveModal() {
     }
   }
 
-  // Hook modal buttons
-  document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("moveModal");
-    const confirmBtn = document.getElementById("moveConfirmBtn");
-    const cancelBtn = document.getElementById("moveCancelBtn");
-
-    if (confirmBtn) confirmBtn.addEventListener("click", confirmMove);
-    if (cancelBtn) cancelBtn.addEventListener("click", closeMoveModal);
-    if (modal) {
-      // click outside to close
-      modal.addEventListener("click", (e)=>{
-        if(e.target === modal) closeMoveModal();
+    function moveProject(projectName) {
+      moveTargetName = projectName;
+      const select = document.getElementById("moveFolderSelect");
+      select.innerHTML = "";
+      allFolders.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = `${f.name} (${f.for||'-'})`;
+        select.appendChild(opt);
+      });
+      document.getElementById("moveModal").classList.remove("hidden");
+    }
+    function confirmMove() {
+      if (!moveTargetName) return;
+      const folderId = document.getElementById("moveFolderSelect").value;
+      const projectRef = db.ref("project_files/" + moveTargetName);
+      projectRef.once("value").then(snapshot => {
+        if (!snapshot.exists()) return alert("Project not found");
+        const data = snapshot.val();
+        db.ref(`folders/${folderId}/projects/${moveTargetName}`)
+          .set(data)
+          .then(() => projectRef.remove())
+          .then(() => { alert("Project moved."); closeMoveModal(); })
+          .catch(err => alert("Error moving: " + err.message));
       });
     }
-  });
+    function closeMoveModal(){
+      document.getElementById("moveModal").classList.add("hidden");
+      moveTargetName = null;
+    }
+    document.getElementById("moveConfirmBtn").addEventListener("click", confirmMove);
+    document.getElementById("moveCancelBtn").addEventListener("click", closeMoveModal);
+    document.getElementById("moveModal").addEventListener("click", (e)=>{ if(e.target.id==="moveModal") closeMoveModal(); });
 
-  // Controls listeners
-  document.querySelectorAll(".controls input,.controls select").forEach(el=>{
-    el.addEventListener("input",()=>{ renderFolders(); renderProjects(); });
-    el.addEventListener("change",()=>{ renderFolders(); renderProjects(); });
-  });
-</script>
+    /* ---------- Controls listeners ---------- */
+    ["folderSearch","folderFilter","folderSort"].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener("input", renderFolders);
+      el.addEventListener("change", renderFolders);
+    });
+    ["projectSearch","projectStatus","projectSize","projectSort"].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener("input", renderProjects);
+      el.addEventListener("change", renderProjects);
+    });
 
-  <script>
-    const plusBtn = document.querySelector('.plus-btn');
+    /* ---------- FAB ---------- */
     const plusContainer = document.querySelector('.plus-container');
-
-    plusBtn.addEventListener('click', () => {
+    document.querySelector('.plus-btn').addEventListener('click', ()=>{
       plusContainer.classList.toggle('active');
-      plusBtn.style.transform = plusContainer.classList.contains('active')
-        ? "rotate(45deg)"   // turns + into ×
-        : "rotate(0deg)";
     });
   </script>
+
+<script>
+// Get the current page URL
+const currentPage = window.location.pathname.split("/").pop();
+
+// Check if the current page is index.html
+if (currentPage === "index.html") {
+  // Get the div element by ID
+  const divElement = document.getElementById("Home");
+
+  // Add a highlight class to the div element
+  if (divElement) {
+    divElement.classList.add("highlight");
+  }
+}
+
+</script>
 </body>
 </html>
