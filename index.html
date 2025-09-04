@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Avanti Teams — Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=0.64, maximum-scale=0.64, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=0.64, maximum-scale=0.64, user-scalable=no">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -14,6 +14,216 @@
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#3f72af" />
+
+<style>
+/* ------------------- Avanti Pro Theme ------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #1A3C5A;
+  --bg-card: #1A3C5A;
+  --accent-1: #00c6ff;
+  --accent-2: #0072ff;
+  --text-main: #f5f7fa;
+  --text-muted: #a0a8b3;
+  --pill-bg: rgba(255,255,255,0.08);
+  --border-radius: 16px;
+  --shadow: 0 8px 28px rgba(0,0,0,0.55);
+  --transition: all 0.25s ease-in-out;
+
+  --due-today: #ff4757; /* urgency */
+  --due-today-glow: rgba(255, 71, 87, 0.6);
+}
+
+
+
+/* ------------------- Header ------------------- */
+h2 {
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 28px;
+  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+/* ------------------- Grid Layout ------------------- */
+/* ------------------- Grid Layout ------------------- */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 🔥 Always 2 columns */
+  gap: 22px;
+}
+
+
+/* ------------------- Project Card ------------------- */
+.project-card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+animation: pulse 1.5s infinite;
+transform: scale(0.9);
+
+}
+
+.project-card:hover {
+  transform: translateY(-6px);
+  border: 1px solid rgba(0,198,255,0.35);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.65);
+}
+
+/* ------------------- Due Today Highlight ------------------- */
+.project-card.due-today {
+  border: 1px solid var(--due-today);
+  box-shadow: 0 0 18px var(--due-today-glow), 0 8px 24px rgba(0,0,0,0.6);
+}
+
+.project-card.due-today::before {
+  content: "DUE TODAY";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: var(--due-today);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 3px 0;
+  border-radius: 16px 16px 0 0;
+}
+
+/* ------------------- Title ------------------- */
+.project-card .title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+}
+
+/* ------------------- Meta ------------------- */
+.project-card .meta {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ------------------- Pills ------------------- */
+.pill {
+  display: inline-block;
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 30px;
+  font-weight: 500;
+  margin-right: 6px;
+  margin-top: 4px;
+  transition: var(--transition);
+}
+
+.pill.status {
+  color: var(--accent-1);
+  background: rgba(0,198,255,0.15);
+}
+
+.pill.size.small {
+  color: #2ecc71;
+  background: rgba(46,204,113,0.15);
+}
+.pill.size.medium {
+  color: #f39c12;
+  background: rgba(243,156,18,0.15);
+}
+.pill.size.large {
+  color: #e74c3c;
+  background: rgba(231,76,60,0.15);
+}
+
+.pill.priority {
+  color: #ffb400;
+  background: rgba(255,180,0,0.15);
+}
+
+.pill.due {
+  background: var(--due-today);
+  color: #fff;
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,71,87,0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(255,71,87,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,71,87,0); }
+}
+
+/* ------------------- Tooltip ------------------- */
+.tooltip {
+  position: absolute;
+  bottom: -200px;
+  left: 0;
+  right: 0;
+  background: rgba(10, 14, 20, 0.95);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 14px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: var(--transition);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.project-card:hover .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ------------------- Responsive ------------------- */
+/* ------------------- Priority Pills ------------------- */
+.pill.priority.severe {
+  background: #ff4757;
+  color: #fff;
+  font-weight: 600;
+  animation: pulse 1.5s infinite;
+}
+
+.pill.priority.moderate {
+  background: #f39c12;
+  color: #fff;
+  font-weight: 600;
+}
+
+.pill.priority.mild {
+  background: #2ecc71;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Pulse animation for severe priority */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,71,87,0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(255,71,87,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,71,87,0); }
+}
+
+</style>
 
   <style>
     /* ===================== BRAND (from your screenshot) ===================== */
@@ -101,7 +311,7 @@ padding-top: 70px;
     .brand h1{
       margin:0; font-size:18px; font-weight:800;
     }
-    .brand h1 span{ color:#9fc4ff; font-weight:800; }
+    .brand h1 span{ color:#ffc107; font-weight:800; }
 
     .back-btn{
       background: var(--green);
@@ -190,7 +400,7 @@ margin-top: 20px;
   margin: 0 auto 25px;
   background-color: #3f72af;
   border-radius: 0px;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+  box-shadow-bottom: 0 6px 14px rgba(0,0,0,0.15);
   flex-wrap: wrap;
 position: sticky;
 top: 60px;
@@ -230,20 +440,31 @@ z-index: 1000;
 
 /* FILTER DROPDOWN */
 .select {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 25px;
-  padding: 8px 14px;
-  min-width: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 10px 16px;
+  min-width: 160px;
   font-size: 14px;
   color: #fff;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+  appearance: none; /* Remove default arrow */
+  -webkit-appearance: none; /* Remove default arrow in Safari */
+  -moz-appearance: none; /* Remove default arrow in Firefox */
 }
+
 .select:hover {
-  background: rgba(255,255,255,0.18);
-  border-color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
+
+.select:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
 
 /* ACTION BUTTON */
 .button-link {
@@ -328,7 +549,7 @@ z-index: 1000;
  .toolbar {
   position: fixed;
   left: 50%;
-  bottom: 32px;
+  bottom: 33px;
   transform: translateX(-50%);
   height: 84px;
   padding: 0 28px;
@@ -576,13 +797,65 @@ transform: rotateX(180deg);
 }
 
 .highlight {
-  color: yellow; 
+  color: #ffc107; 
 }
 
 .highlight span{
-color: yellow;
+color: #ffc107;
 }
 
+/* Toggle bar */
+.due-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(22, 31, 45, 0.9);
+  padding: 12px 20px;
+  
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s ease;
+  margin-bottom: 8px;
+margin-top: -5px;
+}
+
+
+/* Arrow rotation */
+#dueArrow {
+  transition: transform 0.3s ease;
+}
+#dueArrow.open {
+  transform: rotate(180deg);
+}
+
+/* Calendar container hidden by default */
+#dueTodayCalendar {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease, opacity 0.5s ease, padding 0.3s ease;
+  opacity: 0;
+  padding-top: 0;
+}
+#dueTodayCalendar.open {
+  max-height: 2000px; /* enough to show all cards */
+  opacity: 1;
+  padding-top: 10px;
+}
+
+.due-count {
+  display: inline-block;
+  background: #ff9800;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 50%;
+  margin-left: 8px;
+  min-width: 20px;
+  text-align: center;
+
+}
 
   </style>
 
@@ -607,17 +880,25 @@ color: yellow;
         <h1>Avanti <span>Teams</span></h1>
         <div style="font-size:12px; color:#b6c8dc; font-weight:700">Design • Develop • Evolve</div>
       </div>
+
     </div>
 
-    <button class="back-btn" onclick="window.history.back()">
-      <i class="fas fa-arrow-left"></i> Back
-    </button>
+<div class="badge"><i class="fa fa-project-diagram"></i>
+<span id="totalAll1" >0</span><span> projects</span></div>
+
+  
   </div>
 
 <div style="min-height: 100%;">
 <img src="https://ik.imagekit.io/3mtmeexff/67EC8A39-BB5C-437D-84CC-901761CB5DB2_NiFYux6W47.png" style="width: 100%; height: auto;">
 
-  <!-- ===================== SUMMARY (TOTALS & ARCHIVES) ===================== -->
+<div id="dueToggle" class="due-toggle">
+  <span><i class="fa fa-bell"></i> Due Today <span id="dueCount" class="due-count">0</span></span>
+  <i id="dueArrow" class="fa-solid fa-chevron-down"></i>
+</div>
+
+<div id="dueTodayCalendar" class="stats"></div>  
+<!-- ===================== SUMMARY (TOTALS & ARCHIVES) ===================== -->
   <div class="total-pill">Total active Projects: <span id="totalAll">0</span></div>
 <div>
 
@@ -642,6 +923,9 @@ color: yellow;
 
   </div>
 
+
+
+
 </div>
 </div>
 
@@ -655,16 +939,16 @@ color: yellow;
         <i class="fa fa-search"></i>
         <input id="folderSearch" placeholder="Search folders…" />
       </div>
-      <select id="folderFilter" class="select">
+      <select style="width: 40%;" id="folderFilter" class="select">
         <option value="">All</option>
         <option value="Company">Company</option>
         <option value="Individual">Individual</option>
       </select>
-      <select id="folderSort" class="select">
+      <select style="width: 40%; " id="folderSort" class="select">
         <option value="az">Sort A–Z</option>
         <option value="za">Sort Z–A</option>
       </select>
-      <a class="button-link" href="all-folders.html"><i class="fa fa-layer-group"></i> All Folders</a>
+     
   <div class="tabs">
     <button style="background: #fff; color: #2c3e50; border: 1px solid var(--chip-border); border-bottom: 2px solid #fff; box-shadow: 0 -2px 8px rgba(0,0,0,0.05); z-index: 2; "class="tab-btn active" data-tab="foldersTab"><i class="fas fa-folder"></i>&nbsp;Folders</button>
     <button class="tab-btn" data-tab="projectsTab"><i class="fas fa-file"></i>&nbsp;Projects</button>
@@ -848,6 +1132,8 @@ color: yellow;
       document.getElementById("totalFolders").textContent = allFolders.length;
       document.getElementById("totalProjects").textContent = allProjects.length;
       document.getElementById("totalAll").textContent = allProjects.length + folderProjects;
+
+document.getElementById("totalAll1").textContent = allProjects.length + folderProjects;
     }
 
     db.ref("archive_projects").on("value", snap=>{
@@ -895,7 +1181,7 @@ color: yellow;
             <h3 class="title">${p.name || '(no name)'}</h3>
 
             <div class="meta">
-              <span class="badge gray">${p.status || '-'}</span>
+              <span class="badge">${p.status || '-'}</span>
               <span class="badge gray">${p.size || '-'}</span>
             </div>
 
@@ -1135,5 +1421,145 @@ if (currentPage === "index.html") {
 }
 
 </script>
+
+
+<script>
+
+
+const INDEPENDENT_ROOT = "project_files";
+const FOLDERS_ROOT = "folders";
+const StatusWeight = {"Fact Finding":3,"Design":3,"Development":2,"Testing & Debugging":2,"Implementation":1,"Complete":0};
+const SizeWeight = {Small:1, Medium:2, Large:3};
+const PaymentWeight = {Pending:2, Complete:0, Completed:0};
+
+
+
+/* ---------------------------- UTILITIES --------------------------- */
+const toNumber = (v)=>{ if(v==null) return 0; if(typeof v==='number') return v; const s=String(v).replace(/[^0-9.\-]/g,'').trim(); const n=parseFloat(s); return Number.isFinite(n)?n:0; };
+function parseStartDate(p){ if(p.StartDate){ const d=new Date(p.StartDate); if(!isNaN(d)) return d;} if(p.createdAt){ const d=new Date(Number(p.createdAt)); if(!isNaN(d)) return d;} if(p.id && /^\d{12,}$/.test(String(p.id))){ const d=new Date(Number(p.id)); if(!isNaN(d)) return d;} return null; }
+function parseDurationDays(p){ const raw=p.Duration??p.duration??""; if(typeof raw==='number') return raw; const m=String(raw).trim().toLowerCase().match(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months)?/i); if(!m) return 0; const n=parseFloat(m[1]); const unit=(m[2]||"days").toLowerCase(); if(unit.startsWith("week")) return Math.round(n*7); if(unit.startsWith("month")) return Math.round(n*30); return Math.round(n); }
+function sumDayExtensions(p){ let total=0; const commits=p.Commits||p.commits||{}; Object.values(commits).forEach(c=>{ const ext=(c.extensions||c.Extensions||{}); if(Array.isArray(ext)) ext.forEach(e=>total+=toNumber(e?.amount)); else Object.values(ext).forEach(e=>total+=toNumber(e?.amount)); }); return total; }
+function getDueDate(p){ const start=parseStartDate(p); if(!start) return null; const durDays=parseDurationDays(p); const extra=sumDayExtensions(p); const due=new Date(start); due.setDate(due.getDate()+durDays+extra); return due; }
+function fmtDate(d){ if(!d) return "—"; return d.toISOString().slice(0,10); }
+function projectPriorityScore(p){ const size=SizeWeight[(p.Size||"").trim()]??2; const pay=PaymentWeight[(p.PaymentStatus||"").trim()]??0; const stat=StatusWeight[(p.Status||"Fact Finding").trim()]??1; return size+pay+stat; }
+
+/* ---------------------------- DATA LOAD --------------------------- */
+async function once(refPath){ const snap=await db.ref(refPath).get(); return snap.exists()?snap.val():null; }
+
+async function loadProjects(){
+  const rawInd=await once(INDEPENDENT_ROOT);
+  const independent=[];
+  if(rawInd) Object.entries(rawInd).forEach(([k,v])=>{ if(v) independent.push({...v, id:v.id||k, _id:k, source:"independent"}); });
+
+  const rawFolders=await once(FOLDERS_ROOT);
+  const folders=[];
+  if(rawFolders) Object.entries(rawFolders).forEach(([folderId,meta])=>{
+    const projectsNode=(meta&&meta.projects)||{};
+    const projects=[];
+    Object.entries(projectsNode).forEach(([pid,pval])=>{ if(pval) projects.push({...pval,id:pval.id||pid,_id:pid,folderId,source:"folder"}); });
+    folders.push({id:folderId, meta, projects});
+  });
+
+  const unified=[...independent.map(p=>({...p, uid:String(p._id)})), ...folders.flatMap(f=>f.projects.map(p=>({...p, uid:`${f.id}/${p._id}`})))];
+  return unified;
+}
+
+/* ---------------------------- RENDER --------------------------- */
+async function renderDueTodayCalendar(){
+  const grid=document.getElementById("dueTodayCalendar");
+  grid.innerHTML="";
+  const unified=await loadProjects();
+
+
+  const now=new Date();
+  const todayStr=fmtDate(now);
+  const dueToday=unified.filter(p=>{
+    const due=getDueDate(p);
+    const status=(p.Status||"Fact Finding").trim();
+    if(status.toLowerCase().startsWith("compl")) return false;
+    return due && fmtDate(due)===todayStr;
+  });
+
+  if(dueToday.length===0){
+    grid.innerHTML=`<div style="grid-column:1/-1;color:#9ca3af;font-size:14px;text-align:center;">✅ No projects due today.</div>`;
+    return;
+  }
+
+  const totalWeight=dueToday.reduce((a,p)=>a+projectPriorityScore(p),0);
+
+  dueToday.forEach(p=>{
+    const status=p.Status||"Fact Finding";
+    const priority=projectPriorityScore(p);
+    const allocatedRatio=((priority/totalWeight)*100).toFixed(1)+"%";
+
+    const card=document.createElement("div");
+    card.className="project-card due-today"; // urgency styling
+
+    card.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      let url="";
+      if(p.source==="independent"){
+        const nameParam=encodeURIComponent(p.ProjectName||p.id);
+        url=`http://localhost:9898/Local/teams/project.html?name=${nameParam}`;
+      } else {
+        const folderId=encodeURIComponent(p.folderId||"null");
+        const projectId=encodeURIComponent(p.id);
+        url=`http://localhost:9898/Local/teams/project.html?folderId=${folderId}&projectId=${projectId}`;
+      }
+      window.location.href=url;
+    });
+
+    let severityClass = "mild";
+let severityLabel = "Mild Priority";
+
+if (priority >= 6) {
+  severityClass = "severe";
+  severityLabel = "Severe Priority";
+} else if (priority >= 3) {
+  severityClass = "moderate";
+  severityLabel = "Moderate Priority";
+}
+document.getElementById("dueCount").innerText = dueToday.length;
+
+card.innerHTML = `
+  <div class="title"><i class="fa-solid fa-briefcase"></i> ${p.ProjectName || p.id}</div>
+  <div class="meta">
+    <span class="pill due">⚠ Due Today</span>
+    <span class="pill status">${status}</span>
+    <span class="pill size ${(p.Size||'').toLowerCase()}">${p.Size||'Medium'}</span>
+    <span class="pill priority ${severityClass}">${severityLabel}</span>
+  </div>
+  <div class="meta"><i class="fa-solid fa-user"></i> ${p.ClientName||p.CompanyName||p.Sponsor||'—'}</div>
+  <div class="meta"><i class="fa-solid fa-clock"></i> Allocated: ${allocatedRatio}</div>
+  <div class="tooltip">
+    Source: ${p.source}${p.folderId?"/"+p.folderId:""}<br>
+    Start: ${fmtDate(parseStartDate(p))}<br>
+    Due: ${fmtDate(getDueDate(p))}<br>
+    Budget: ${p.Budget||'—'}<br>
+    Client/Sponsor: ${p.ClientName||p.CompanyName||p.Sponsor||'—'}
+  </div>
+`;
+
+    grid.appendChild(card);
+  });
+}
+
+// Load on page ready
+renderDueTodayCalendar();
+</script>
+
+<script>
+const toggle = document.getElementById("dueToggle");
+const calendar = document.getElementById("dueTodayCalendar");
+const arrow = document.getElementById("dueArrow");
+
+toggle.addEventListener("click", () => {
+  calendar.classList.toggle("open");
+  arrow.classList.toggle("open");
+});
+
+
+</script>
+
 </body>
 </html>
