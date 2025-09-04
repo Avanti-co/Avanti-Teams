@@ -1516,14 +1516,14 @@ async function renderDueTodayCalendar(){
     });
 
     let severityClass = "mild";
-let severityLabel = "Mild Priority";
+let severityLabel = "Mild Lvl";
 
 if (priority >= 6) {
   severityClass = "severe";
-  severityLabel = "Severe Priority";
+  severityLabel = "Severe Lvl";
 } else if (priority >= 4.5) {
   severityClass = "moderate";
-  severityLabel = "Moderate Priority";
+  severityLabel = "Moderate Lvl";
 }
 document.getElementById("dueCount").innerText = dueToday.length;
 
@@ -1537,7 +1537,7 @@ style="margin-top:5px;"class="title"><i class="fa-solid fa-project-diagram"></i>
     <span style="margin-right: -15px;"class="pill priority ${severityClass}">${severityLabel}</span>
   </div>
   <div class="meta"><i class="fa-solid fa-user"></i> ${p.ClientName||p.CompanyName||p.Sponsor||'—'}
-   <i class="fa-solid fa-clock"></i>${allocatedRatio} Priority</div>
+   <i class="fa-solid fa-clock"></i>Top ${allocatedRatio}</div>
   <div class="tooltip">
     Source: ${p.source}${p.folderId?"/"+p.folderId:""}<br>
     Start: ${fmtDate(parseStartDate(p))}<br>
