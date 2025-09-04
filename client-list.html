@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+   <meta name="viewport" content="width=device-width, initial-scale=0.64, maximum-scale=0.64, user-scalable=no">
 <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
   <title>Avanti — Database</title>
   <!-- Font Awesome -->
@@ -39,31 +39,78 @@
       color:#fff;
       background: linear-gradient(160deg, var(--blue), var(--deep));
     }
-/* Toolbar */
-    .toolbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 2px solid #333;
-      z-index: 1000;
-    }
 
-    .toolbar i {
-      color: #aaa;
-      font-size: 30px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+  .back-btn {
+    background: var(--brand-blue);
+    color: var(--white);
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.3s;
+  }
+  .back-btn:hover { background: var(--bg3); }
 
-    .toolbar i:hover {
-      color: #fff;
-    }
+ .toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 33px;
+  transform: translateX(-50%);
+  height: 84px;
+  padding: 0 28px;
+  background: rgba(22, 31, 45, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: #e2ebff;
+  z-index: 1002;
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+width: 98%;
+}
+
+.toolbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 64px;
+  cursor: pointer;
+  transition: transform 0.25s, color 0.25s;
+}
+
+.toolbar-item i {
+  font-size: 26px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.25s, transform 0.25s;
+}
+
+.toolbar-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.25s;
+margin-top: -10px;
+}
+
+.toolbar-item:hover i {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-3px);
+}
+
+.toolbar-item:hover span {
+  color: #ffffff;
+}
+
 
     header{
       display:flex; align-items:center; justify-content:center; gap:.8rem;
@@ -163,41 +210,80 @@
 .hint{ font-size:.78rem; opacity:.6; margin-left:8px; display:none }
 .editing + .hint{ display:inline }
 .danger{ border-color:#ff7a7a !important; }
+
+ .topbar {
+  height: 72px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  /* Theme Styling */
+  background-color: #3f72af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+/* ===== LEFT SECTION (Logo / Brand) ===== */
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.topbar .brand img {
+  height: 55px;
+  width: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px;
+    }
+    .brand .logo{
+      width:42px; height:42px; border-radius:15px; overflow:hidden; flex:none;
+    }
+    .brand h1{
+      margin:0; font-size:18px; font-weight:800;
+    }
+    .brand h1 span{ color:#ffc107; font-weight:800; }
+
+    .back-btn{
+      background: rgba(77,173,80,		);
+      color:#fff; border:0; padding:9px 14px; border-radius:10px;
+      cursor:pointer; font-weight:700;
+      display:inline-flex; gap:8px; align-items:center;
+      box-shadow: 0 6px 18px rgba(77,173,80,.35);
+      transition: transform var(--speed);
+    }
+    .back-btn:hover{ transform: translateY(-1px); }
   </style>
 </head>
 <body>
-  <div style=" position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-       display: flex;
-      padding-left: 15px;
-      align-items: left;
-      border-top: 2px solid #333;
-text-align: left;
-      z-index: 1001;">
-
-  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
-      letter-spacing:0.6px;
-"aria-hidden="true">
-
-<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
-
-    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
-
-</div>
+ <div class="topbar">
+    <div class="brand">
+      <img class="logo" src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" alt="">
       <div>
-        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
-        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+        <h1>Avanti <span>Teams</span></h1>
+        <div style="font-size:12px; color:#b6c8dc; font-weight:700">Design • Develop • Evolve</div>
       </div>
+
     </div>
 
-<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
-
-
+<button  class="back-btn"onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
+  
   </div>
   <header>
     <div class="brand"><i class="fa-solid fa-circle-nodes"></i> <h1>AVANTI</h1> <span>Database</span></div>
@@ -217,13 +303,21 @@ text-align: left;
       </div>
     </section>
   </main>
-  <div class="toolbar">
-    <i class="fas fa-home" onclick="window.location='index.html'"></i>
-    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+   <div class="toolbar">
+   <div class="toolbar-item" id="Home">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i><span>Home</span></div>
+
+  <div  class="toolbar-item">
+    <i class="fas fa-envelope" onclick="window.location='select-template.html'"></i> <span  >Newsletters</span></div>
+
   
-    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
-    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+ <div class="toolbar-item">
+    <i class="fas fa-chart-line" onclick="window.location='analytics.html'"></i> <span>Analytics</span></div>
+
+ <div style="color: #ffc107;"class="toolbar-item">
+    <i class="fas fa-database" onclick="window.location='client-list.html'"></i><span style="color: #ffc107;">Database</span> </div>
   </div>
+
 
   <footer>Tip: Make sure your Realtime Database rules allow read access for your current auth state, and double‑check the <strong>databaseURL</strong> in your Firebase config.</footer>
 
