@@ -1446,7 +1446,13 @@ function parseStartDate(p){ if(p.StartDate){ const d=new Date(p.StartDate); if(!
 function parseDurationDays(p){ const raw=p.Duration??p.duration??""; if(typeof raw==='number') return raw; const m=String(raw).trim().toLowerCase().match(/(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months)?/i); if(!m) return 0; const n=parseFloat(m[1]); const unit=(m[2]||"days").toLowerCase(); if(unit.startsWith("week")) return Math.round(n*7); if(unit.startsWith("month")) return Math.round(n*30); return Math.round(n); }
 function sumDayExtensions(p){ let total=0; const commits=p.Commits||p.commits||{}; Object.values(commits).forEach(c=>{ const ext=(c.extensions||c.Extensions||{}); if(Array.isArray(ext)) ext.forEach(e=>total+=toNumber(e?.amount)); else Object.values(ext).forEach(e=>total+=toNumber(e?.amount)); }); return total; }
 function getDueDate(p){ const start=parseStartDate(p); if(!start) return null; const durDays=parseDurationDays(p); const extra=sumDayExtensions(p); const due=new Date(start); due.setDate(due.getDate()+durDays+extra); return due; }
-function fmtDate(d){ if(!d) return "—"; return d.toISOString().slice(0,10); }
+function fmtDate(d) {
+  if (!d) return "—";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 function projectPriorityScore(p){ const size=SizeWeight[(p.Size||"").trim()]??2; const pay=PaymentWeight[(p.PaymentStatus||"").trim()]??0; const stat=StatusWeight[(p.Status||"Fact Finding").trim()]??1; return size+pay+stat; }
 
 /* ---------------------------- DATA LOAD --------------------------- */
