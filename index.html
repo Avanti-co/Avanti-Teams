@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Avanti Teams — Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=0.64, maximum-scale=0.64, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=0.62, maximum-scale=0.62, user-scalable=no">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -54,6 +54,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* 🔥 Always 2 columns */
   gap: 22px;
+background: rgba(255,71,87,0.3);
+margin-top: -7px;
+box-shadow: 0px 10px 10px rgba(255,71,87,0.3);
+
 }
 
 
@@ -69,6 +73,7 @@ h2 {
   position: relative;
   overflow: hidden;
 animation: pulse 1.5s infinite;
+
 
 }
 
@@ -817,6 +822,8 @@ color: #ffc107;
   transition: background 0.3s ease;
   margin-bottom: 8px;
 margin-top: -5px;
+height: 65px;
+
 }
 
 
@@ -892,11 +899,11 @@ margin-top: -5px;
 <img src="https://ik.imagekit.io/3mtmeexff/67EC8A39-BB5C-437D-84CC-901761CB5DB2_NiFYux6W47.png" style="width: 100%; height: auto;">
 
 <div id="dueToggle" class="due-toggle">
-  <span><i class="fa fa-bell"></i> Due Today <span id="dueCount" class="due-count">0</span></span>
+  <span style="font-size:18px; font-weight:800;"><i class="fa fa-bell"></i> Due Projects <span id="dueCount" class="due-count">0</span></span>
   <i id="dueArrow" class="fa-solid fa-chevron-down"></i>
 </div>
 
-<div id="dueTodayCalendar" class="grid-container"style="padding: 15px;" ></div>  
+<div id="dueTodayCalendar" class="grid-container" style="padding: 15px;"></div>  
 <!-- ===================== SUMMARY (TOTALS & ARCHIVES) ===================== -->
   <div class="total-pill">Total active Projects: <span id="totalAll">0</span></div>
 <div>
@@ -938,12 +945,12 @@ margin-top: -5px;
         <i class="fa fa-search"></i>
         <input id="folderSearch" placeholder="Search folders…" />
       </div>
-      <select style="width: 40%;" id="folderFilter" class="select">
+      <select style="width: 45%;" id="folderFilter" class="select">
         <option value="">All</option>
         <option value="Company">Company</option>
         <option value="Individual">Individual</option>
       </select>
-      <select style="width: 40%; " id="folderSort" class="select">
+      <select style="width: 45%; " id="folderSort" class="select">
         <option value="az">Sort A–Z</option>
         <option value="za">Sort Z–A</option>
       </select>
@@ -1427,9 +1434,9 @@ if (currentPage === "index.html") {
 
 const INDEPENDENT_ROOT = "project_files";
 const FOLDERS_ROOT = "folders";
-const StatusWeight = {"Fact Finding":3,"Design":3,"Development":2,"Testing & Debugging":2,"Implementation":1,"Complete":0};
+const StatusWeight = {"Fact Finding":4,"Design":3,"Development":2,"Testing & Debugging":2,"Implementation":1,"Complete":0};
 const SizeWeight = {Small:1, Medium:2, Large:3};
-const PaymentWeight = {Pending:2, Complete:0, Completed:0};
+const PaymentWeight = {Pending:0, Complete:2, Completed:0};
 
 
 
@@ -1499,11 +1506,11 @@ async function renderDueTodayCalendar(){
       let url="";
       if(p.source==="independent"){
         const nameParam=encodeURIComponent(p.ProjectName||p.id);
-        url=`http://localhost:9898/Local/teams/project.html?name=${nameParam}`;
+        url=`project.html?name=${nameParam}`;
       } else {
         const folderId=encodeURIComponent(p.folderId||"null");
         const projectId=encodeURIComponent(p.id);
-        url=`http://localhost:9898/Local/teams/project.html?folderId=${folderId}&projectId=${projectId}`;
+        url=`project.html?folderId=${folderId}&projectId=${projectId}`;
       }
       window.location.href=url;
     });
@@ -1514,21 +1521,23 @@ let severityLabel = "Mild Priority";
 if (priority >= 6) {
   severityClass = "severe";
   severityLabel = "Severe Priority";
-} else if (priority >= 3) {
+} else if (priority >= 4.5) {
   severityClass = "moderate";
   severityLabel = "Moderate Priority";
 }
 document.getElementById("dueCount").innerText = dueToday.length;
 
 card.innerHTML = `
-  <div class="title"><i class="fa-solid fa-briefcase"></i> ${p.ProjectName || p.id}</div>
+  <div 
+style="margin-top:5px;"class="title"><i class="fa-solid fa-project-diagram"></i> ${p.ProjectName || p.id}</div>
   <div class="meta">
-  
+    
     <span class="pill status">${status}</span>
-    <span class="pill size ${(p.Size||'').toLowerCase()}">${p.Size||'Medium'}</span>
-    <span class="pill priority ${severityClass}">${severityLabel}</span>
+   
+    <span style="margin-right: -15px;"class="pill priority ${severityClass}">${severityLabel}</span>
   </div>
-  <div class="meta"><i class="fa-solid fa-user"></i> ${p.ClientName||p.CompanyName||p.Sponsor||'—'} <i class="fa-solid fa-clock"></i> Allocated: ${allocatedRatio}</div>
+  <div class="meta"><i class="fa-solid fa-user"></i> ${p.ClientName||p.CompanyName||p.Sponsor||'—'}
+   <i class="fa-solid fa-clock"></i>${allocatedRatio} Priority</div>
   <div class="tooltip">
     Source: ${p.source}${p.folderId?"/"+p.folderId:""}<br>
     Start: ${fmtDate(parseStartDate(p))}<br>
