@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=0.64, maximum-scale=0.64, user-scalable=no">
 <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
   <title>Avanti Analytics</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,25 +24,41 @@
 </script>
   <style>
     :root{
-      --brand:#3c6ea6;      /* Avanti blue */
-      --brand-ink:#0f2e4b;  /* deep navy accent */
-      --ink:#0b1721;
-      --muted:#5b6b7a;
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --ring:rgba(60,110,166,.15);
-      --good:#11a36a;
-      --warn:#e6a100;
-      --bad:#e5524a;
+      /* Blues pulled from your UI image */
+    --bg1: #1A3C5A; /* Darker version of #2b5078 */
+--bg2: #2B4C6F; /* Darker version of #396390 */
+--bg3: #335A83; /* Darker version of #446e9b */
+
+      --ink: #f5f8fc;        /* primary on-dark text */
+      --muted: #94a8bd;      /* secondary text on dark */
+      --header: #222223;     /* top bar */
+      --green: #4dad50;      /* back button */
+      --chip: rgba(255,255,255,.10);
+      --chip-border: rgba(255,255,255,.18);
+      --card: rgba(23,40,66,.75);
+      --card-border: rgba(255,255,255,.12);
+      --accent: #9fc4ff;     /* light accent for pills/badges */
+      --accent-strong: #a7d3ff;
+      --radius: 14px;
+      --shadow: 0 10px 28px rgba(0,0,0,.30);
+      --speed: .25s;
     }
 
-    html,body{height:100%}
+    /* ===================== LAYOUT ===================== */
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
     body{
       margin:0;
-      font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      color:var(--ink);
-      background:linear-gradient(180deg,#eef3fb 0%, #fff 60%); padding-bottom: 150px;
-    }
+      color: var(--ink);
+      font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.08), transparent 50%),
+        linear-gradient(180deg,  var(--bg2) 45%, var(--bg3));
+      
+padding-top: 70px;
+
+
+  }
     header{
       position:sticky; top:85px; z-index:9;
       background:#fff; border-bottom:1px solid #e6ecf3;
@@ -83,7 +99,7 @@
     .pill.bad{background:#fdeceb; color:var(--bad)}
     .list{display:grid; gap:10px}
     .proj{
-      display:flex; align-items:center; gap:12px; padding:10px; border:1px solid #edf1f6; border-radius:12px;
+      display:flex;  gap:12px; padding:10px; border:1px solid #edf1f6; border-radius:12px;
       background:#fbfdff;
     }
     .proj .title{font-weight:700}
@@ -96,158 +112,498 @@
     .legend{font-size:12px; color:var(--muted)}
     .chip{display:inline-block; padding:2px 8px; background:#eff5fb; color:#436b91; font-weight:700; border-radius:999px; font-size:12px}
 
-/* Toolbar */
-    .toolbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 2px solid #333;
-      z-index: 1000;
+ .toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 33px;
+  transform: translateX(-50%);
+  height: 84px;
+  padding: 0 28px;
+  background: rgba(22, 31, 45, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: #e2ebff;
+  z-index: 1002;
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+width: 98%;
+}
+
+.toolbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 64px;
+  cursor: pointer;
+  transition: transform 0.25s, color 0.25s;
+}
+
+.toolbar-item i {
+  font-size: 26px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.25s, transform 0.25s;
+}
+
+.toolbar-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.25s;
+margin-top: -10px;
+}
+
+.toolbar-item:hover i {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-3px);
+}
+
+.toolbar-item:hover span {
+  color: #ffffff;
+}
+
+:root {
+  --bg1: #1A3C5A;
+  --bg2: #2B4C6F;
+  --bg3: #335A83;
+
+  --ink: #f5f8fc;
+  --muted: #94a8bd;
+  --green: #4dad50;
+  --card: rgba(23,40,66,0.75);
+  --card-border: rgba(255,255,255,0.12);
+  --radius: 14px;
+  --shadow: 0 10px 28px rgba(0,0,0,.30);
+}
+
+/* Background */
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+  padding-top: 85px;
+}
+
+/* Top bar */
+header {
+  position: sticky;
+  top: 85px;
+  z-index: 9;
+  background: rgba(22, 31, 45, 0.85);
+  border-bottom: 1px solid var(--card-border);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+}
+
+header h1 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* Tabs */
+.tabs button {
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+.tabs button.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+.card h3 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+
+/* KPI */
+.kpi .big {
+  font-size: 34px;
+  font-weight: 800;
+}
+.kpi .sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Proj List Items */
+.proj {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--card-border);
+}
+.proj .title { font-weight: 700; }
+.proj .meta { font-size: 12px; color: var(--muted); }
+
+/* Pills */
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.pill.good { background: rgba(76, 175, 80, 0.2); color: #4caf50; }
+.pill.bad { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+
+/* Chip */
+.chip {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+/* Footer */
+footer {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 14px;
+  margin-bottom: 100px;
+}
+/* Container for the daily calendar */
+.calendar {
+  
+  gap: 16px;
+  padding: 15px;
+  background-color: #1e1f26;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Hour column */
+.calendar .hour {
+  font-size: 13px;
+  color: #9ca3af;
+  text-align: right;
+  padding-right: 12px;
+  margin-top: 4px;
+  user-select: none;
+}
+
+/* Vertical slot line for timeline */
+.calendar .slot {
+  border-left: 2px solid #3b82f6;
+  padding-left: 14px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+/* Optional: subtle horizontal grid lines */
+.calendar .slot::before {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  z-index: 0;
+}
+
+/* Individual task card */
+.calendar .task {
+  background: #272b35;
+  border-left: 4px solid #3b82f6;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 6px 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* Hover effect for tasks */
+.calendar .task:hover {
+  background: #32373f;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Task title */
+.calendar .task .title {
+  font-weight: 600;
+  color: #fff;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* Task meta info (time, labels) */
+.calendar .task .meta {
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.3;
+}
+
+/* Scrollable timeline if many slots */
+.calendar {
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for a sleek look */
+.calendar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.calendar::-webkit-scrollbar-thumb {
+  background-color: #3b82f6;
+  border-radius: 3px;
+}
+
+.calendar::-webkit-scrollbar-track {
+  background: #1e1f26;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .calendar {
+    grid-template-columns: 60px 1fr;
+    gap: 12px;
+  }
+  .calendar .hour {
+    font-size: 12px;
+    padding-right: 8px;
+  }
+  .calendar .task {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}
+
+
+/* Container for the entire week */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #1e1f26; /* Slightly darker for elegance */
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Each day column */
+.week-day {
+  background: #272b35;
+  border: 1px solid #3b4048;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.week-day:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Day header */
+.week-day h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #60a5fa;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #3b4048;
+  padding-bottom: 6px;
+}
+
+/* Task container inside a day */
+.week-task {
+  background: #32373f;
+  border-left: 4px solid #60a5fa;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #e0e0e0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.week-task:hover {
+  background: #3c4149;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Optional: small time label for each task */
+.week-task span.time {
+  display: block;
+  font-size: 11px;
+  color: #a0aec0;
+  margin-bottom: 4px;
+}
+
+/* Scrollable days if tasks overflow */
+.week-day {
+  max-height: 500px; /* adjust as needed */
+  overflow-y: auto;
+}
+
+/* Scrollbar styling (modern look) */
+.week-day::-webkit-scrollbar {
+  width: 6px;
+}
+
+.week-day::-webkit-scrollbar-thumb {
+  background-color: #60a5fa;
+  border-radius: 3px;
+}
+
+.week-day::-webkit-scrollbar-track {
+  background: #272b35;
+}
+
+/* Responsive tweak for smaller screens */
+@media (max-width: 1024px) {
+  .week-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+ .topbar {
+  height: 72px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  /* Theme Styling */
+  background-color: #3f72af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+/* ===== LEFT SECTION (Logo / Brand) ===== */
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.topbar .brand img {
+  height: 55px;
+  width: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px;
     }
-
-    .toolbar i {
-      color: #aaa;
-      font-size: 30px;
-      cursor: pointer;
-      transition: 0.2s;
+    .brand .logo{
+      width:42px; height:42px; border-radius:15px; overflow:hidden; flex:none;
     }
-
-    .toolbar i:hover {
-      color: #fff;
+    .brand h1{
+      margin:0; font-size:18px; font-weight:800;
     }
+    .brand h1 span{ color:#ffc107; font-weight:800; }
 
-    /* Plus button container */
-    .plus-container {
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
+    .back-btn{
+      background: var(--green);
+      color:#fff; border:0; padding:9px 14px; border-radius:10px;
+      cursor:pointer; font-weight:700;
+      display:inline-flex; gap:8px; align-items:center;
+      box-shadow: 0 6px 18px rgba(77,173,80,.35);
+      transition: transform var(--speed);
     }
-
-    .plus-btn {
-      width: 80px;
-      height: 80px;
-      background: #007bff; /* 🔵 Blue button */
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 28px;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      position: relative;
-      z-index: 200;
-      transition: transform 0.3s ease;
-    }
-
-    /* Options above */
-    .options {
-      position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 15px;
-      pointer-events: none;
-    }
-
-    .option {
-      width: 85px;
-      height: 85px;
-      background: #444;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 20px;
-      opacity: 0;
-      transform: translateY(40px) scale(0.5) rotate(0deg);
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-margin-bottom: 25px;
-    }
-
-    .plus-container.active .option {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0) scale(1) rotate(360deg);
-    }
-
-    /* File */
-    .plus-container.active .option:nth-child(1) {
-      transition-delay: 0.05s;
-    }
-
-    /* Folder */
-    .plus-container.active .option:nth-child(2) {
-      transition-delay: 0.1s;
-    }
-
-
+    .back-btn:hover{ transform: translateY(-1px); }
   </style>
 </head>
 <body style="padding-bottom: 500px;">
-  <div style=" position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-       display: flex;
-      padding-left: 15px;
-      align-items: left;
-      border-top: 2px solid #333;
-text-align: left;
-      z-index: 1001;">
-
-  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
-      letter-spacing:0.6px;
-"aria-hidden="true">
-
-<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
-
-    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
-
-</div>
+  <div class="topbar">
+    <div class="brand">
+      <img class="logo" src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" alt="">
       <div>
-        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
-        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+        <h1>Avanti <span>Teams</span></h1>
+        <div style="font-size:12px; color:#b6c8dc; font-weight:700">Design • Develop • Evolve</div>
       </div>
+
     </div>
 
-<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
-
-
-  </div>
-
-  <header>
-    <img src="assets/avanti-logo.png" alt="Avanti logo" onerror="this.style.display='none'">
-    <h1>Analytics</h1>
-    <div class="tabs">
+  <div class="tabs">
       <button class="active" data-tab="analytics">Analytics</button>
       <button data-tab="statistics">Statistics</button>
       <button data-tab="reports">Reports</button>
     </div>
-  </header>
+  
+  </div>
 
-  <main style="margin-top: 100px;">
+
+
+  <main style="margin-bottom: 70px; margin-top: 20px;">
     <!-- ANALYTICS -->
     <section id="analytics" class="tab">
       <div class="grid">
         <!-- KPIs -->
         <div class="card span-3"><h3>Total Projects</h3><div class="kpi"><div class="big" id="kpi-total">–</div></div></div>
-        <div class="card span-3"><h3 style="margin-left: -12px;">Independent Projects</h3><div class="kpi"><div class="big" id="kpi-ind">–</div></div></div>
+        <div class="card span-3"><h3 >Individual Files</h3><div class="kpi"><div class="big" id="kpi-ind">–</div></div></div>
         <div class="card span-3"><h3>Folder Projects</h3><div class="kpi"><div class="big" id="kpi-fold">–</div></div></div>
-        <div class="card span-3"><h3>Folders</h3><div class="kpi"><div class="big" id="kpi-folders">–</div></div></div>
+        <div class="card span-3"><h3>Total Folders</h3><div class="kpi"><div class="big" id="kpi-folders">–</div></div></div>
 
         <!-- Status distribution -->
         <div class="card span-8">
@@ -305,11 +661,11 @@ text-align: left;
     <!-- REPORTS -->
     <section id="reports" class="tab hidden">
       <div class="grid">
-        <div class="card span-3">
+        <div class="card span-12">
           <h3>Completion Ratio</h3>
           <canvas id="completeRatio" height="160"></canvas>
         </div>
-        <div class="card span-9">
+        <div class="card span-12">
           <h3>Priority by Size • Payment • Status</h3>
           <canvas id="priorityBar" height="160"></canvas>
           <div class="legend">Higher score = higher urgency (size + payment + status stage weighting)</div>
@@ -326,18 +682,26 @@ text-align: left;
           <h3>Executive Report</h3>
           <div id="execReport" class="report"></div>
         </div>
+
       </div>
     </section>
   </main>
-  <div class="toolbar">
-    <i class="fas fa-home" onclick="window.location='index.html'"></i>
-    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
+   <div class="toolbar">
+   <div class="toolbar-item" id="Home">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i><span>Home</span></div>
 
-    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
-    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
+  <div class="toolbar-item">
+    <i class="fas fa-envelope" onclick="window.location='select-template.html'"></i> <span>Newsletters</span></div>
+
+  
+ <div class="toolbar-item" style="color: #ffc107;">
+    <i class="fas fa-chart-line" onclick="window.location='analytics.html'"></i> <span style="color: #ffc107;">Analytics</span></div>
+
+ <div class="toolbar-item">
+    <i class="fas fa-database" onclick="window.location='client-list.html'"></i><span>Database</span> </div>
   </div>
 
-  <footer>© <span id="year"></span> Avanti • Design, Develop, Evolve</footer>
+  <footer>© <span id="year"></span> </footer>
 
 <script>
 /* ----------------------------- CONFIG ----------------------------- */
@@ -803,6 +1167,7 @@ Recommendations:
   document.getElementById("execReport").textContent = para;
 }
 
+
 /* ----------------------------- ORCHESTRA -------------------------- */
 
 function renderAll(){
@@ -817,6 +1182,8 @@ function renderAll(){
   renderScheduleOfWeek();
   renderExtensionsReport();
   renderExecutiveReport();
+
+  
 }
 
 /* ------------------------------ TABS ------------------------------ */
