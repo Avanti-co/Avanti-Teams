@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Project Details</title>
-  <meta name="viewport" content="width=device-width, initial-scale=0.62, maximum-scale=0.62, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=0.0.64, maximum-scale=0.64, user-scalable=no">
 <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#008080">
+<meta name="theme-color" content="#3f72af">
 
 <script>
   if ("serviceWorker" in navigator) {
@@ -18,13 +18,16 @@
     });
   }
 </script>
+
 <script>
+
   (function() {
     emailjs.init("VdZnwQXzlvXUMvOpB"); // 🔑 from EmailJS dashboard
   })();
 </script>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getDatabase, ref, get, set, push, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
@@ -216,12 +219,11 @@ function displayTaskInfo(data) {
   const msPerDay = 86400000;
   const daysLeft = Math.round((dueDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / msPerDay);
 
-  let dueColor = "green";
-  if (daysLeft <= 3 && daysLeft >= 0) dueColor = "orange";
-  else if (daysLeft < 0) dueColor = "red";
-  else if (daysLeft > 30) dueColor = "blue";
-  else if (daysLeft > 14) dueColor = "purple";
-
+  let dueColor = "#34C759"; // Green
+if (daysLeft <= 3 && daysLeft >= 0) dueColor = "#FFA07A"; // Orange
+else if (daysLeft < 0) dueColor = "#FF3737"; // Red
+else if (daysLeft > 30) dueColor = "#4682B4"; // Blue
+else if (daysLeft > 14) dueColor = "#7A288A"; // Purple
   const effectiveStatus = pending.statusTo || data.Status || "Fact Finding";
   const percent = progressPercentForStatus(effectiveStatus);
 
@@ -236,58 +238,24 @@ if (data.ProjectName && !folderId && !projectId) {
   params.push("projectId=" + encodeURIComponent(projectId));
   url = "edit-file2.html?" + params.join("&");
 }
-
+""
 
   // inject into existing layout (kept your markup)
   document.getElementById("project-info").innerHTML = `
 
-
-<div style=" position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-       display: flex;
-      padding-left: 15px;
-      align-items: left;
-      border-top: 2px solid #333;
-text-align: left;
-      z-index: 1001;">
-
-  <div class="brand" style="display:flex;align-items:center;gap:12px;font-weight:800; 
-      letter-spacing:0.6px;
-"aria-hidden="true">
-
-<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
-
-    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" style=" width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;"class="logo-mark" id="logo-mark">
-
-</div>
+<div style="z-index: 999;"class="topbar ">
+    <div class="brand">
+      <img class="logo" src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" alt="">
       <div>
-        <div style="font-size:20px;"><a style="color: #F4F7FB;">Avanti</a> <a style="color: #3f72af;">Teams</a></div>
-        <div style="font-size:13px;color: #98a7bb;font-weight:600">Design • Develop • Evolve</div>
+        <h1 style="border: none;">Avanti <span>Teams</span></h1>
+        <div style="font-size:12px; color:#b6c8dc; font-weight:700">Design • Develop • Evolve</div>
       </div>
+
     </div>
-
-<button style="position: fixed; top: 25px; right: 10px; background-color: #4CAF50; color: #fff; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; z-index: 1000;" onclick="window.history.back();"><i class="fas fa-arrow-left"></i> Back</button>
-
-
-  </div>
-
-    <div style="margin-top: 100px;" class="container">
-
-      <div class="badge">
-        <h6>
-          <b>${data.For || ""}</b> • 
-          <b>${data.Category || ""} • </b> 
-          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
-        </h6>
-      </div>
-<div style="position: relative; display:inline-block; float:right; ">
+  <button id="commit-btn" class="btn-success btn btn_outline">Commit</button>
+<div style=" margin-right: 30px;display:inline-block;  ">
   <button 
-    style="font-size:25px; cursor:pointer;"
+    style="font-size:25px; cursor:pointer; background: transparent; border: none; color: var(--bg1)"
     onclick="var d=this.nextElementSibling; d.style.display=(d.style.display==='block')?'none':'block';">
     <i class="fas fa-ellipsis-v"></i>
   </button>
@@ -295,19 +263,28 @@ text-align: left;
   <div style="
     display:none;
     position:absolute;
-    right:0;
-    background:#fff;
+    right:50px;
+    background: var(--header);
     border:1px solid #ccc;
     border-radius:6px;
     min-width:150px;
     box-shadow:0 2px 6px rgba(0,0,0,0.2);
-    z-index:1000;
+    z-index:1020;
+margin-top: 15px;
   ">
     <div style="padding:8px 12px; cursor:pointer;" onclick="${url ? `window.location.href='${url}';` : `alert('No valid data to open');`} this.parentElement.style.display='none';">Edit file</div>
     <div style="padding:8px 12px; cursor:pointer;" onclick="window.location.href='commits.html?${projectName ? `name=${projectName}` : `folderId=${folderId}&projectId=${projectId}`}'; this.parentElement.style.display='none';">Analytics</div>
   
   </div>
 </div>
+
+</div>
+
+
+    <div  class="container1">
+
+
+     
 
       <div class="grid-top">
         <div class="upload-box">
@@ -337,10 +314,10 @@ text-align: left;
         </div>
       </div>
 
-      <button id="commit-btn" class="btn-success btn btn_outline">Commit</button>
+    
     </div>
-
-    <div class="container">
+<div class="main">
+    <div style="margin-top: 50px;"class="container ">
       <div class="details">
         <div class="badge2"><b>${data.Size || ""} Project</b></div>
         <div class="badge2">
@@ -352,26 +329,90 @@ text-align: left;
           <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
         </div>
 
-        <h1 style="margin-top: 20px; font-size: 28px;">Project Status</h1>
-        <div style="display:flex; margin-bottom:25px; gap:9px;">
-          <p class="dates">${effectiveStatus}</p>
-          <p class="dates" id="perc"> • ${percent}% completed </p>
-          <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
-        </div>
-
-        <div class="progress" id="status-flow" style="cursor:pointer;">
-          ${STATUS_STEPS.map((name, i) => `
-            <div class="b3" data-status="${name}">
-              <div class="badge step-number" data-index="${i}">${i+1}</div>
-              <div class="badge3">${name}</div>
+        <h1 style="margin-top: 20px; font-size: 32px; margin-bottom: 10px; padding: 5px;"> Project Status</h1><br>
+       
+  <div style="display: flex; " class="progress1">
+            <div style="border: 1px solid #3f72af" class="container">
+              <label>Started on</label>
+              <p class="dates"><i class="fa fa-calendar"></i> ${new Date(data.StartDate).toDateString()}</p>
             </div>
-          `).join("")}
-        </div>
+            <div style="border: 1px solid #3f72af" class="container">
+              <label>Due On</label>
+              <p class="dates"><i class="fa fa-calendar-check"></i> ${dueDate.toDateString()}</p>
+            </div>
+          </div>
+<div class="progress" id="status-flow" style="
+  background:#fff;
+  border:1px solid #dcdcdc;
+  border-radius:12px;
+  padding:20px;
+  max-width:650px;
+  font-family:system-ui,sans-serif;
+  color:#333;
+  display:grid;
+  gap:20px;
+overflow: hidden;
+border: 2px solid #3f72af
+">
+<div style="background-color: #3f72af; padding: 20px; margin: -20px; margin-bottom: 10px;   display: flex;   justify-content: space-between;
+  flex-direction: row;">
+  <h1 style="margin: 0; border: 0; "><i class="fa fa-tasks"></i> Track Progress</h1>    <div style=" width: 45%; right: 0;">
+            <div class="progress-bar"><span id="progress-span" style="width:${percent}%"></span></div>
+            <p class="dates"><span id="progress-label">${percent}%</span> completed.</p>
+          </div>
 
-        <div style="max-width:100%; grid-template-columns:1fr; display:grid; justify-content:space-between; height:100%;">
-          <div>
-            <label><i class="fa fa-clock"></i> Extend working duration</label>
-            <div class="container2" id="ext-options">
+</div>
+
+
+  ${STATUS_STEPS.map((name, i) => `
+    <div class="b3" data-status="${name}" style="
+      display:grid;
+      grid-template-columns:30px 1fr;
+      gap:15px;
+      position:relative;
+      font-size:14px;
+      line-height:1.5;
+    ">
+      <span class="badge step-number" data-index="${i}" style="
+        width:12px;
+        height:26px;
+        border-radius:0;
+        background:#f0f0f0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:13px;
+        color:#999;
+        flex-shrink:0;
+      ">✔️</span>
+
+      <div class="badge3" style="
+        font-size:14px; width: 90%;
+        color:#333;
+      ">${name}
+        <div style="
+          margin-top:4px;
+          font-size:12px;
+          color:#999;
+        ">${new Date().toISOString().slice(0,16).replace('T',' ')}</div>
+      </div>
+    </div>
+  `).join("")}
+
+</div></div></div>
+
+<div class="container">
+ <h1> Date Extensions</h1>
+      <div style="display:flex; margin-bottom:25px; gap:9px;">
+        <p class="dates">${effectiveStatus}</p>
+        <p class="dates" id="perc"> • ${percent}% completed </p>
+        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+      </div>
+
+        <div style="max-width:100%; grid-template-columns:190px 1fr; display:grid; gap: 12px;height:100%;">
+          <div style="border: 1px solid #3f72af; padding: 15px;" class="container">
+            <label><i class="fa fa-clock"></i> Extend duration</label>
+            <div class="" id="ext-options">
               <div class="badge2 ext-btn" data-days="1">+1 day</div>
               <div class="badge2 ext-btn" data-days="2">+2 day</div>
               <div class="badge2 ext-btn" data-days="7">+1 week</div>
@@ -380,9 +421,9 @@ text-align: left;
             </div>
           </div>
 
-          <div>
+          <div style="border: 1px solid #3f72af; padding: 15px;" class="container">
             <label><i class="fa fa-info-circle"></i> Reason</label>
-            <div class="container2">
+            <div class="">
               <div>
                 <div class="badge2 reason-btn">Resource Constraints</div>
                 <div class="badge2 reason-btn">Underestimation</div>
@@ -394,24 +435,12 @@ text-align: left;
             <p class="dates" id="pending-extensions-note" style="margin-top:6px;"></p>
           </div>
 
-          <div>
-            <div class="progress-bar"><span id="progress-span" style="width:${percent}%"></span></div>
-            <p class="dates"><span id="progress-label">${percent}%</span> completed.</p>
-          </div>
+       
 
-          <div class="progress1">
-            <div>
-              <label>Started on</label>
-              <p class="dates"><i class="fa fa-calendar"></i> ${new Date(data.StartDate).toDateString()}</p>
-            </div>
-            <div>
-              <label>Due On</label>
-              <p class="dates"><i class="fa fa-calendar-check"></i> ${dueDate.toDateString()}</p>
-            </div>
-          </div>
+        
         </div>
       </div>
-    </div>
+    </div></div>
 
     <div style="margin-top: 20px; font-size: 28px;" class="container">
       <h1>Developer's Notes</h1>
@@ -421,10 +450,26 @@ text-align: left;
         <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
       </div>
 
-      <div>
-        <label class="note"><i class="fa fa-file-text"></i> ${effectiveStatus} Notes</label>
-        <textarea id="status-note" style="
-          width: 90%;
+      <div style="
+  background:#fff;
+  border:1px solid #dcdcdc;
+  border-radius:12px;
+  
+  max-width:650px;
+  font-family:system-ui,sans-serif;
+  color:#333;
+  display:grid;
+  gap:20px;
+overflow: hidden;
+border: 2px solid #3f72af
+"class="progress">
+
+
+<div style="background-color: #3f72af; padding: 20px;  margin-bottom: 10px;   display: flex;   justify-content: space-between;
+  flex-direction: row;">
+        <h1 style="border: 0;"> <i class="fa fa-note-sticky"></i><a class="note"> ${effectiveStatus} Notes</a></h1></div>
+        <textarea id="status-note" style="   margin-top: -30px;
+          width: 100%;
           height: 300px;
           padding: 15px 20px;
           font-family: 'Courier New', monospace;
@@ -432,16 +477,23 @@ text-align: left;
           line-height: 1.6;
           color: #333;
           background: repeating-linear-gradient(white, white 28px, #e3e3e3 29px);
-          border: 1px solid #ccc;
-          border-radius: 8px;
+          
+          
           box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
           resize: vertical;
           outline: none;
         "></textarea>
-        <button id="view-notes-btn" class="btn-success btn badge2">View Previous Notes</button>
+       
       </div>
+ <button id="view-notes-btn" class="btn-success btn btn_outline">View Previous Notes</button>
     </div>
-
+ <div class="badge">
+        <h6>
+          <b>${data.For || ""}</b> • 
+          <b>${data.Category || ""} • </b> 
+          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
+        </h6>
+      </div>
     <div class="container">
       <h1>Payments info</h1>
       <div style="display:flex; margin-bottom:25px; gap:9px;">
@@ -495,7 +547,7 @@ text-align: left;
         <p class="dates" id="perc"> • ${percent}% completed </p>
         <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
       </div>
-      <div class="container1">
+      <div class="container">
         <p><b>Emails</b><br>
           ${Array.isArray(data.Emails) ? data.Emails.map(e => `<b class="badge2">${e}</b>`).join(" ") : ""}
         </p>
@@ -566,19 +618,25 @@ function paintStatuses(currentStatus) {
     const numEl = block.querySelector('.step-number');
     const badge3 = block.querySelector('.badge3');
     numEl.style.background = '';
-    numEl.style.color = 'black'
-    badge3.style.background ='var(--light-gray)'
+    numEl.style.color = 'gray'
+numEl.style.border = ''
+    badge3.style.color =''
+badge3.style.border = "";
     badge3.style.fontWeight = 'normal';
 
     if (idx < currentIdx) {
-      numEl.style.background = "linear-gradient(135deg, #4caf50, #8bc34a)";
+      numEl.style.color = "blue";
+numEl.style.border = "2px dotted Green";
+numEl.style.borderRadius = "50%";
       badge3.style.fontWeight = 'bold';
-      badge3.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
+      badge3.style.color = "green";
+      
 
     } else if (idx === currentIdx) {
-      numEl.style.background = "linear-gradient(135deg, #ff5722, #ff9800)";
+      numEl.style.border = "2px solid #3f72af";
+numEl.style.borderRadius = "50%";
       numEl.style.color = '#fff';
-      badge3.style.background = 'linear-gradient(135deg, #ff5722, #ff9800)'
+      badge3.style.color = '#3f72af'
       badge3.style.fontWeight = 'bold';
     }
   });
@@ -652,7 +710,7 @@ function hookExtensionUI() {
         chosenReason = null;
       } else {
         reasonButtons.forEach(b => b.style.outline = '');
-        btn.style.outline = '2px solid #444';
+        btn.style.outline = '2px solid #3f72af';
         chosenReason = btn.textContent.trim();
       }
     });
@@ -666,7 +724,7 @@ function hookExtensionUI() {
         chosenDays = null;
       } else {
         extButtons.forEach(b => b.style.outline = '');
-        btn.style.outline = '2px solid #444';
+        btn.style.outline = '2px solid #3f72af';
         chosenDays = parseInt(btn.dataset.days, 10);
       }
     });
@@ -741,31 +799,132 @@ async function openNotesModal() {
   wrapper.style.zIndex = '9999';
 
   const panel = document.createElement('div');
-  panel.style.background = '#fff';
-  panel.style.maxWidth = '800px';
-  panel.style.width = '90%';
-  panel.style.maxHeight = '85vh';
-  panel.style.overflow = 'auto';
-  panel.style.borderRadius = '10px';
-  panel.style.padding = '20px';
-  panel.innerHTML = `
-    <h2 style="margin-top:0;">Previous Notes</h2>
-    <p class="dates" style="margin-bottom:12px;">Edit notes per status. Remember: one note per status.</p>
-    <div id="notes-list">
-      ${statuses.map(s => `
-        <div style="border:1px solid #eee; padding:12px; border-radius:8px; margin-bottom:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0;">${s}</h3>
-            <button data-save="${s}" class="badge2 btn">Save</button>
-          </div>
-          <textarea data-area="${s}" style="width:100%; height:120px; margin-top:8px; padding:10px; border-radius:6px; border:1px solid #ddd;">${(notes[s] || "")}</textarea>
-        </div>
+panel.classList.add('notes-panel');
+
+panel.innerHTML = `
+  <div class="notes-header">
+    <h2>Previous Notes</h2>
+    <button id="close-notes" class="btn badge2">Close</button>
+  </div>
+  <div class="notes-tabs">
+    <ul>
+      ${statuses.map((s, index) => `
+        <li data-tab="${s}" class="${index === 0 ? 'active' : ''}">${s}</li>
       `).join("")}
-    </div>
-    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
-      <button id="close-notes" class="btn badge2">Close</button>
-    </div>
-  `;
+    </ul>
+  </div>
+  <div class="notes-content">
+    ${statuses.map((s, index) => `
+      <div data-content="${s}" class="notes-tab-content ${index === 0 ? 'active' : ''}">
+        <textarea data-area="${s}">${(notes[s] || "")}</textarea>
+        <button data-save="${s}" class="btn badge2 save-btn">Save</button>
+      </div>
+    `).join("")}
+  </div>
+`;
+
+// Add event listeners for tab switching
+const tabs = panel.querySelectorAll('.notes-tabs li');
+const tabContents = panel.querySelectorAll('.notes-tab-content');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabName = tab.getAttribute('data-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(content => content.classList.remove('active'));
+    tab.classList.add('active');
+    panel.querySelector(`.notes-tab-content[data-content="${tabName}"]`).classList.add('active');
+  });
+});
+
+// Styles
+const style = document.createElement('style');
+style.textContent = `
+  .notes-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 95%;
+    height: 50vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+
+  .notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .notes-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--ink);
+  }
+
+  .notes-tabs ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .notes-tabs li {
+    padding: 8px 16px;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .notes-tabs li.active {
+    border-bottom-color: var(--accent);
+    color: var(--ink);
+  }
+
+  .notes-tab-content {
+    display: none;
+    padding: 16px 0;
+  }
+
+  .notes-tab-content.active {
+    display: block;
+  }
+
+  .notes-tab-content textarea {
+  width: 92%;
+          height: 300px;
+          padding: 15px 20px;
+          font-family: 'Courier New', monospace;
+          font-size: 16px;
+          line-height: 1.6;
+          color: #333;
+          background: repeating-linear-gradient(white, white 28px, #e3e3e3 29px);
+          
+          
+          box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+          resize: vertical;
+          outline: none;
+  }
+
+  .save-btn {
+    margin-top: 10px;
+    background: var(--green);
+    color: var(--ink);
+    width: 100%;
+    padding: 12px;
+  }
+`;
+document.head.appendChild(style);
   wrapper.appendChild(panel);
   document.body.appendChild(wrapper);
 
@@ -990,11 +1149,9 @@ async function loadProject() {
   if (!found && projectName) {
     found = await findProjectByName(projectName);
   }
-  if (!found) {
-    document.body.innerHTML = "<h2>❌ Project not found</h2>";
-    return;
-  }
-
+if (!found) {
+  window.location.href = "http://localhost:9898/Local/teams/project.html?name=Scratch%20coding1";
+}
   projectPointer = makePointerForFound(found);
 
   const snap = await get(projectPointer.projectRef);
@@ -1026,99 +1183,124 @@ window.handleCompletePayment = () => {
 
 
 <style>
-/* ---------- THEME ---------- */
 :root {
-  --blue: #4472A6;
-  --navy: #0E2A47;
-  --white: #ffffff;
-  --gray: #2F3E50;
-  --light-gray: #f5f7fa;
-  --accent: #A66944;
-  --success: #3BA55D;
-  --warning: #F0A500;
-  --danger: #D64545;
+  /* Blues pulled from your UI image */
+  --bg1: #1A3C5A; /* Darker version of #2b5078 */
+  --bg2: #2B4C6F; /* Darker version of #396390 */
+  --bg3: #335A83; /* Darker version of #446e9b */
+
+  --ink: #f5f8fc;        /* primary on-dark text */
+  --muted: #94a8bd;      /* secondary text on dark */
+  --header: #222223;     /* top bar */
+  --green: #4dad50;      /* back button */
+  --chip: rgba(255,255,255,.10);
+  --chip-border: rgba(255,255,255,.18);
+  --card: rgba(23,40,66,1);
+  --card-border: rgba(255,255,255,.12);
+  --accent: #9fc4ff;     /* light accent for pills/badges */
+  --accent-strong: #a7d3ff;
   --radius: 14px;
-  --shadow: 0 8px 26px rgba(0,0,0,0.08);
+  --shadow: 0 10px 28px rgba(0,0,0,.30);
+  --speed: .25s;
+
+  /* Fallback colors for previous hard-coded ones */
+  --white: #ffffff;
+  --gray: #94a8bd;
+  --blue: var(--bg2);
+  --navy: var(--bg1);
+  --light-gray: rgba(255,255,255,.1);
+  --success: #4dad50;
+  --warning: #ffb400;
+  --danger: #ff4c4c;
+  --brand: #335A83;
+  --brand-2: #2B4C6F;
+  --border: rgba(255,255,255,.18);
+  --accent-dark: #7faee8;
+  --dark: #222223;
 }
 
 /* ---------- GLOBAL ---------- */
 body {
   font-family: "Segoe UI", Tahoma, sans-serif;
-  background-color: var(--blue);
+  background-color: var(--bg1);
   margin: 0;
-  padding: 10px;
-  color: var(--gray);
+  color: var(--ink);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-padding-bottom: 100px;
+  
 }
 
 /* ---------- CARD CONTAINER ---------- */
-.container{
-  background: var(--white);
+.container {
+  background: var(--card);
   padding: 30px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   width: 100%;
   max-width: 900px;
   box-sizing: border-box;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-margin-bottom: 20px;
+  transition: transform var(--speed) ease, box-shadow var(--speed) ease;
+  margin-bottom: 20px;
 }
 .container:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 34px rgba(0,0,0,0.12);
 }
 
-.container1{
-  background: rgba(68, 114, 166, 0.1)
-; /* slightly more opaque */
-  backdrop-filter: blur(70px); /* increased blur effect */
-  padding: 20px; /* increased padding for a more spacious feel */
-  border-radius: var(--radius);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* more pronounced shadow */
-border-left: 5px solid #4472A6;
+.container1 {
+  position: relative;
+  background: linear-gradient(to bottom, #3f72af 20%, #4f84c4 50%, #6fa8dc 100%);
+  padding: 30px;
+  padding-bottom: 60px; /* space for wave */
+  box-shadow: 0 20px 40px black;
   width: 100%;
   max-width: 900px;
   box-sizing: border-box;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 30px;
+  transition: transform var(--speed) ease, box-shadow var(--speed) ease;
+  margin-bottom: 20px;
+  overflow: visible;
+  border-bottom-left-radius: 50% 12%;
+  border-bottom-right-radius: 50% 12%;
+padding-top: 100px;
+top: 0px;
+
+
 }
 
-.container2{
-display: flex;
+.container2 {
+  display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px;
-  background: #fff; /* white background */
-  border-radius: 10px;
-  border: 1px solid #ddd; /* border outline */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--chip-border);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 /* ---------- BADGE ---------- */
 .badge {
   display: inline-block;
   padding: 8px 16px;
-  background: var(--light-gray);
+  background: var(--chip);
   border-radius: 30px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--chip-border);
   font-size: 14px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--accent);
   margin-bottom: 20px;
-  transition: background 0.3s;
+  transition: background var(--speed);
 }
 .badge:hover {
-  background: #ebeff5;
+  background: var(--accent-strong);
 }
 
 /* ---------- GRID LAYOUT ---------- */
 .grid-top {
   display: grid;
-  grid-template-columns: 160px 1fr;
+  grid-template-columns: 170px 1fr;
   gap: 25px;
   align-items: center;
   margin-bottom: 20px;
@@ -1126,16 +1308,16 @@ display: flex;
 
 /* ---------- UPLOAD BOX / LOGO ---------- */
 .upload-box {
-  border: 2px solid var(--blue);
+  border: 2px solid var(--bg2);
   border-radius: 10px;
-  height: 160px;
-  width: 160px;
+  height: 180px;
+  width: 180px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: left;
+  justify-content: left;
   overflow: hidden;
-  background: #f9fbfd;
-  transition: border 0.3s;
+  background: var(--card);
+  
 }
 .upload-box:hover {
   border-color: var(--accent);
@@ -1151,80 +1333,114 @@ h1 {
   margin: 0;
   font-size: 26px;
   font-weight: 700;
-  color: var(--navy);
-      border-left: 5px solid var(--accent);
-      
+  color: var(--ink);
+  border-left: 5px solid var(--accent);
 }
 
-nav.main-nav{
-      position:fixed;
-      z-index:1200;
-      left:41%;
-      transform:translateX(-50%);
-      width:87%;
-      max-width:var(--max-width);
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      padding:12px 22px;
-      align-items:center;
-      top:14px;
-      background-color: rgba(14, 42, 71, 0.6)
-;
-      border-radius:30px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 6px 30px rgba(2,6,23,0.35);
-      border: 1px solid rgba(255,255,255, 0.5);
-      margin:0 60px 0 60px;
-    }
-    .brand{
-      display:flex;align-items:center;gap:12px;font-weight:800;
-      letter-spacing:0.6px;
-    }
-/* Toolbar */
-    .toolbar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 85px;
-      background: #222;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 2px solid #333;
-      z-index: 1000;
-    }
+/* ---------- NAVBAR ---------- */
+nav.main-nav {
+  position: fixed;
+  z-index: 1200;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 87%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  align-items: center;
+  top: 14px;
+  background-color: rgba(14, 42, 71, 0.6);
+  border-radius: 30px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 30px rgba(2,6,23,0.35);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+}
 
-    .toolbar i {
-      color: #aaa;
-      font-size: 30px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+ .toolbar {
+  position: fixed;
+  left: 50%;
+  bottom: 33px;
+  transform: translateX(-50%);
+  height: 84px;
+  padding: 0 28px;
+  background: rgba(22, 31, 45, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: #e2ebff;
+  z-index: 1002;
+  backdrop-filter: blur(14px) saturate(160%);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+  transition: all 0.3s ease;
+width: 90%;
+}
 
-    .toolbar i:hover {
-      color: #fff;
-    }
-    .logo-mark{
-      width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,var(--white), rgba(255,255,255,0.85));
-      color:var(--dark); font-weight:800; font-size:20px;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+.toolbar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 64px;
+  cursor: pointer;
+  transition: transform 0.25s, color 0.25s;
+}
 
+.toolbar-item i {
+  font-size: 26px;
+  padding: 12px;
+  border-radius: 14px;
+  transition: background 0.25s, transform 0.25s;
+}
 
-    }
+.toolbar-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.25s;
+margin-top: -10px;
+}
 
+.toolbar-item:hover i {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-3px);
+}
 
+.toolbar-item:hover span {
+  color: #ffffff;
+}
+
+.logo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--white), rgba(255,255,255,0.85));
+  color: var(--dark);
+  font-weight: 800;
+  font-size: 20px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+}
+
+/* ---------- TEXT ELEMENTS ---------- */
 h6 {
   margin: 0;
   font-weight: 600;
-  color: var(--gray);
+  color: var(--muted);
   font-size: 14px;
 }
-
-/* ---------- INFO ROWS ---------- */
 .info-row {
   display: flex;
   flex-wrap: wrap;
@@ -1232,17 +1448,15 @@ h6 {
   margin: 5px 0;
 }
 .info-row b {
-  color: var(--blue);
+  color: var(--accent);
   font-weight: 600;
 }
-
-/* ---------- PROJECT DETAILS ---------- */
 .details p {
   margin: 6px 0;
   line-height: 1.5;
 }
 .details b {
-  color: var(--navy);
+  color: var(--accent);
 }
 
 /* ---------- STATUS COLORS ---------- */
@@ -1250,90 +1464,236 @@ h6 {
 .status-warning { color: var(--warning); font-weight: bold; }
 .status-danger  { color: var(--danger); font-weight: bold; }
 
-
-  .btn {
-      padding: 10px 18px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-
-    .btn-success {
-  
+/* ---------- BUTTONS ---------- */
+.btn {
+  padding: 10px 18px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: var(--speed);
+}
+.btn-success {
   margin-left: auto;
   display: block;
   width: fit-content;
-
 }
+.btn-success:hover { background: var(--accent-dark); }
+.btn_outline { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+.btn_subtle { background: rgba(255,255,255,.3); color: var(--ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
 
-    .btn-success:hover { background: var(--accent-dark); }
-
-.badge2{display:inline-flex;align-items:center;gap:6px;background:#e9f2ff;padding:.25rem .55rem;border-radius:999px;font-size:.78rem;border:1px solid #d3e6ff;
-margin-bottom: 5px;
-}
-.btn_outline{background:transparent;border:2px solid #102c48;color:var(--accent); }
-
-.btn_subtle{background:rgba(255,255,255,.3);color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-
-.progress{
-display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
+/* ---------- BADGE VARIANTS ---------- */
+.badge2 {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 20px;
-}
-.progress1{
-display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-  align-items: center;
-  margin-bottom: 20px;
-}
+  gap: 6px;
+  background: var(--accent);
+  padding: .25rem .55rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  border: 1px solid var(--accent-strong);
+  margin-bottom: 5px;
+font-size:11px; font-weight:800; letter-spacing:.02em;
+      padding: 4px 8px; border-radius: 10px;
+      color:#0f1f33; background: linear-gradient(180deg, #a7d3ff, #90c6ff);
+    
+color:#dbe9ff; background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+    }
 .badge3 {
   display: inline-block;
   padding: 8px 16px;
-  background: var(--light-gray);
-  border-radius: 30px;
-  border: 1px solid #ddd;
+  background: var(--chip);
+  
+  border: 1px solid var(--chip-border);
   font-size: 14px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--accent);
   margin-bottom: 0px;
-  transition: background 0.3s;
   width: 60%;
 }
-.b3{
-margin-bottom: 0;
-}
+
+/* ---------- LABELS ---------- */
 label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 600;
-      color: var(--navy);
-    } 
-.dates{
-color: var(--blue);
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.dates {
+  color: var(--accent);
   font-weight: 600;
   font-size: 13px;
 }
-.progress-bar{
-      height:9px; background: gray; border-radius:999px; border:1px solid var(--border); overflow:hidden;
+
+/* ---------- PROGRESS ---------- */
+.progress, .progress1 {
+  display: grid;
+  grid-template-columns: 1fr; 
+  gap: 15px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  position: relative;
+  
+}
+.progress-bar {
+  height: 9px;
+  background: var(--chip);
+  border-radius: 999px;
+  border: 1px solid var(--chip-border);
+  overflow: hidden;
+}
+.progress-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  transition: width .3s ease;
+}
+.topbar {
+  height: 72px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+
+  /* Theme Styling */
+  background-color: #3f72af;
+  
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+/* ===== LEFT SECTION (Logo / Brand) ===== */
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.topbar .brand img {
+  height: 55px;
+  width: 45px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px;
     }
-    .progress-bar span{
-      display:block; height:100%; width:0%;
-      background:linear-gradient(90deg, var(--brand), var(--brand-2));
-      transition:width .3s ease;
+    .brand .logo{
+      width:42px; height:42px; border-radius:15px; overflow:hidden; flex:none;
     }
+    .brand h1{
+      margin:0; font-size:18px; font-weight:800;
+    }
+    .brand h1 span{ color:#ffc107; font-weight:800; }
+
+    .back-btn{
+      background: var(--green);
+      color:#fff; border:0; padding:9px 14px; border-radius:10px;
+      cursor:pointer; font-weight:700;
+      display:inline-flex; gap:8px; align-items:center;
+      box-shadow: 0 6px 18px rgba(77,173,80,.35);
+      transition: transform var(--speed);
+    }
+    .back-btn:hover{ transform: translateY(-1px); }
+
+
+
+/* Sticky state */
+.container1.sticky {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: ;
+  height: 150px;
+  display: relative;
+  align-items: center;
+  z-index: 300;
+  padding: 8px 20px;
+border-radius: 0;
+
+text align; center; 
+margin: 0;
+background: linear-gradient(90deg, var(--bg2), rgba(0,0,0,0.85));
+padding-top: 20px;
+
+margin-top: 50px;
+
+
+
+}
+
+/* Sticky state with 1 column */
+.container1.sticky .grid-top {
+  display: flex;
+  
+  gap: 5px;
+
+align-item: center;
+}
+
+/* Shrink image when sticky */
+
+
+/* Hide all but essentials in sticky */
+.container1.sticky p,
+.container1.sticky .badge
+
+{ 
+  display: none;
+}
+
+
+.container1.sticky ~ .main {
+
+  padding-top: 400px; /* same as sticky height */
+
+ 
+}
+
+.container1.sticky ~ .topbar1 {
+  background-color: #3f72af;
+}
+
+.container1.sticky #project-title {
+  font-size: 1.5rem;
+  margin: 0;
+transition: all 0s ease;
+}
+
+.container1.sticky .upload-box  {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+  
+}
+
+.container1.sticky .info-row {
+  font-size: 0.9rem;
+  display: flex;
+transition: all 0s ease;
+}
+ 
 </style>
 
 
 
 </head>
 <body>
+
+
 
   <div id="project-info">
 <h1 id="project-title"></h1>
@@ -1345,14 +1705,32 @@ color: var(--blue);
 
 
 
-  <div class="toolbar">
-    <i class="fas fa-home" onclick="window.location='index.html'"></i>
-    <i onclick="window.location='select-template.html'" class="fas fa-envelope"></i>
-  
-    <i onclick="window.location='analytics.html'"class="fas fa-chart-line"></i>
-    <i onclick="window.location='client-list.html'"class="fas fa-database"></i>
-  </div>
-       
+    <div class="toolbar">
+   <div class="toolbar-item" id="Home">
+    <i class="fas fa-home" onclick="window.location='index.html'"></i><span>Home</span></div>
 
+  <div class="toolbar-item">
+    <i class="fas fa-envelope" onclick="window.location='select-template.html'"></i> <span>Newsletters</span></div>
+
+   
+ <div class="toolbar-item">
+    <i class="fas fa-chart-line" onclick="window.location='analytics.html'"></i> <span>Analytics</span></div>
+
+ <div class="toolbar-item">
+    <i class="fas fa-database" onclick="window.location='client-list.html'"></i><span>Database</span> </div>
+  </div>
+<script>
+window.addEventListener("scroll", function () {
+  const container = document.querySelector(".container1");
+  const containerHeight = container.offsetHeight;
+  const stickyOffset = container.offsetTop + containerHeight / 2; 
+
+  if (window.scrollY > stickyOffset) {
+    container.classList.add("sticky");
+  } else {
+    container.classList.remove("sticky");
+  }
+});
+</script>
 </body>
 </html>
