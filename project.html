@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Project Details</title>
-  <meta name="viewport" content="width=device-width, initial-scale=0.57, maximum-scale=0.57, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=0.58, maximum-scale=0.58, user-scalable=no">
 <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link rel="manifest" href="manifest.json">
@@ -219,11 +219,20 @@ function displayTaskInfo(data) {
   const msPerDay = 86400000;
   const daysLeft = Math.round((dueDate - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / msPerDay);
 
-  let dueColor = "#34C759"; // Green
-if (daysLeft <= 3 && daysLeft >= 0) dueColor = "#FFA07A"; // Orange
-else if (daysLeft < 0) dueColor = "#FF3737"; // Red
-else if (daysLeft > 30) dueColor = "#4682B4"; // Blue
-else if (daysLeft > 14) dueColor = "#7A288A"; // Purple
+  let dueColor = "var(--success)"; // ✅ Green (on-time, healthy)
+
+if (daysLeft <= 3 && daysLeft >= 0) {
+  dueColor = "var(--warning)";   // ⚠️ Close deadline (yellow-orange)
+} 
+else if (daysLeft < 0) {
+  dueColor = "var(--danger)";    // ⛔ Overdue (red)
+} 
+else if (daysLeft > 30) {
+  dueColor = "var(--accent)";    // 📘 Far away (soft light blue)
+} 
+else if (daysLeft > 14) {
+  dueColor = "var(--accent-dark)"; // 💜 Mid-range (cooler purple-blue)
+} // Purple
   const effectiveStatus = pending.statusTo || data.Status || "Fact Finding";
   const percent = progressPercentForStatus(effectiveStatus);
 
@@ -281,7 +290,7 @@ margin-top: 15px;
 </div>
 
 
-    <div   class="container1">
+    <div  class="container1">
 
 
      
@@ -410,16 +419,19 @@ gap: 10px; /* adjust the gap size */
           }
             </div>
           </div>
+
 </div>
  
 </div></div>
 
-<div class="container" style="margin-top: 50px;">
- <h1>Project Status</h1>
-      <div style="display:flex; margin-bottom:25px; gap:9px;">
-        <p class="dates">${effectiveStatus}</p>
-        <p class="dates" id="perc"> • ${percent}% completed </p>
-        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+<div class="container pad" style="margin-top: 50px;">
+ <h1>Project Status</h1><br>
+       <div class="badge">
+        <h6>
+          <b>${data.For || ""}</b> • 
+          <b>${data.Category || ""} • </b> 
+          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
+        </h6>
       </div>
 
 <div class="progress" id="status-flow" style="
@@ -483,7 +495,7 @@ border: 2px solid #3f72af
 
 </div></div></div>
 
-<div class="container">
+<div class="container pad">
  <h1> Date Extensions</h1>
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
@@ -522,9 +534,9 @@ border: 2px solid #3f72af
         
         </div>
       </div>
-    </div></div>
+    </div></div></div>
 
-    <div style="margin-top: 20px; font-size: 28px;" class="container">
+    <div style="font-size: 28px;" class="pad container">
       <h1>Developer's Notes</h1>
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
@@ -569,67 +581,62 @@ border: 2px solid #3f72af
       </div>
  <button id="view-notes-btn" class="btn-success btn btn_outline">View Previous Notes</button>
     </div>
- <div class="badge">
-        <h6>
-          <b>${data.For || ""}</b> • 
-          <b>${data.Category || ""} • </b> 
-          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
-        </h6>
+
+    <div class="container pad" >
+  <h1 style="margin:0 0 20px; font-size:1.6rem; color:var(--ink);">Payment info</h1>
+
+  <div style="display:flex; margin-bottom:25px; gap:9px; font-size:0.95rem; color:var(--accent);">
+    <p class="dates" style="margin:0; color:var(--accent-strong);">${effectiveStatus}</p>
+    <p class="dates" id="perc" style="margin:0; color:var(--muted);"> • ${percent}% completed </p>
+    <p class="dates" style="margin:0; color:${dueColor};"> • due ${relativeInfo}</p>
+  </div>
+
+  <div style="max-width:100%; padding:18px; border: 1px solid #3f72af; border-radius:var(--radius); background:var(--card); font-family:Arial, sans-serif; color:var(--ink);">
+    <dl style="margin:0;">
+
+      <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--chip-border);">
+        <dt style="font-weight:bold; color:var(--ink);">Budget:</dt>
+        <dd style="margin:0; color:var(--accent-strong);">${data.Budget || ""}</dd>
       </div>
-    <div class="container">
-      <h1>Payments info</h1>
-      <div style="display:flex; margin-bottom:25px; gap:9px;">
-        <p class="dates">${effectiveStatus}</p>
-        <p class="dates" id="perc"> • ${percent}% completed </p>
-        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
-      </div>
 
-
-<div style="max-width:300px; padding:15px; border:1px solid #ddd; border-radius:8px; background:#fafafa; font-family:Arial, sans-serif;">
-  <dl style="margin:0;">
-    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
-      <dt style="font-weight:bold; color:#333;">Budget:</dt>
-      <dd style="margin:0; color:#111;">${data.Budget || ""}</dd>
-    </div>
-    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
-      <dt style="font-weight:bold; color:#333;">Prepaid:</dt>
-      <dd style="margin:0; font-weight:bold; color:${data.Prepaid ? 'green' : 'red'};">
-        ${data.Prepaid ? "Yes" : "No"}
-      </dd>
-    </div>
-
-    ${
-      !data.Prepaid ? `
-      <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee;">
-        <dt style="font-weight:bold; color:#333;">Status:</dt>
-        <dd id="pay-status" style="margin:0; font-weight:bold; color:${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'green' : 'orange'};">
-          ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}
+      <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--chip-border);">
+        <dt style="font-weight:bold; color:var(--ink);">Prepaid:</dt>
+        <dd style="margin:0; font-weight:bold; color:${data.Prepaid ? 'var(--success)' : 'var(--danger)'};">
+          ${data.Prepaid ? "Yes" : "No"}
         </dd>
       </div>
 
-      <!-- Hidden input so your save/diff logic sees the change -->
-      <input type="hidden" id="payment-status-input" name="PaymentStatus"
-             value="${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}">
+      ${
+        !data.Prepaid ? `
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--chip-border);">
+          <dt style="font-weight:bold; color:var(--ink);">Status:</dt>
+          <dd id="pay-status" style="margin:0; font-weight:bold; color:${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'var(--success)' : 'var(--warning)'};">
+            ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}
+          </dd>
+        </div>
 
-      <div style="padding:10px 0; text-align:center;">
-        <button id="toggle-payment-btn" class="btn badge2">
-          ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Mark as Pending' : 'Complete Payment'}
-        </button>
-      </div>
-` : ""
-    }
-  </dl>
+        <input type="hidden" id="payment-status-input" name="PaymentStatus"
+               value="${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Complete' : (data.PaymentStatus || 'Pending')}">
+
+        <div style="padding:12px 0; text-align:center;">
+          <button id="toggle-payment-btn" class="btn badge2" 
+                  style="padding:10px 18px; border:none; border-radius:var(--radius); background:var(--brand); color:var(--ink); cursor:pointer; font-weight:bold; transition:background var(--speed), transform var(--speed);">
+            ${(pending.paymentCompleted || data.PaymentStatus === 'Complete') ? 'Mark as Pending' : 'Complete Payment'}
+          </button>
+        </div>
+      ` : ""
+      }
+    </dl>
+  </div>
 </div>
-    </div>
-
-    <div class="container">
+    <div class="container pad">
       <h1>Contact Info</h1>
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
         <p class="dates" id="perc"> • ${percent}% completed </p>
         <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
       </div>
-      <div class="container">
+      <div style="max-width:100%; padding:18px; border: 1px solid #3f72af; border-radius:var(--radius); background:var(--card); font-family:Arial, sans-serif; color:var(--ink);"class="container">
         <p><b>Emails</b><br>
           ${Array.isArray(data.Emails) ? data.Emails.map(e => `<b class="badge2">${e}</b>`).join(" ") : ""}
         </p>
@@ -1455,7 +1462,7 @@ nav.main-nav {
  .toolbar {
   position: fixed;
   left: 50%;
-  bottom: 33px;
+  bottom: 40px;
   transform: translateX(-50%);
   height: 84px;
   padding: 0 28px;
@@ -1614,6 +1621,10 @@ label {
   font-size: 13px;
 }
 
+.pad{
+margin-top: 60px;
+}
+
 /* ---------- PROGRESS ---------- */
 .progress, .progress1 {
   display: grid;
@@ -1666,6 +1677,8 @@ label {
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.5px;
+  transform: scale(1.1);
+  margin-left: 10px;
 }
 .topbar .brand img {
   height: 55px;
@@ -1683,6 +1696,7 @@ label {
     }
     .brand h1{
       margin:0; font-size:18px; font-weight:800;
+margin-left: -5px;
     }
     .brand h1 span{ color:#ffc107; font-weight:800; }
 
