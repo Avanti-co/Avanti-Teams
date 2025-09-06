@@ -204,6 +204,31 @@ function getRelativeDate(startDateStr, durationStr, extraDays = 0) {
 
 // ---- Rendering main info (unchanged style) ----
 function displayTaskInfo(data) {
+// --- Stage allocation ratios ---
+const stageRatios = {
+  "Fact Finding": 0.07,
+  "Design": 0.15,
+  "Development": 0.45,
+  "Testing & Debugging": 0.20,
+  "Implementation": 0.08,
+  "Complete": 0.05
+};
+
+const STATUS_STEPS = [
+  "Fact Finding",
+  "Design",
+  "Development",
+  "Testing & Debugging",
+  "Implementation",
+  "Complete"
+];
+
+// --- helper to format weeks + days ---
+function formatEstimate(days) {
+  const weeks = Math.floor(days / 7);
+  const remDays = days % 7;
+  return `${weeks ? weeks + " week(s)" : ""}${weeks && remDays ? " + " : ""}${remDays ? remDays + " day(s)" : ""}`;
+}
   // compute effective total extension = committed + pending staged
   const pendingExtTotal = pending.extensions.reduce((a, e) => a + (parseInt(e.amount || 0, 10) || 0), 0);
   const totalExtra = totalCommittedExtensionDays + pendingExtTotal;
@@ -336,13 +361,16 @@ margin-top: 15px;
 
 <div class="container" style="margin-top: 40px;">
  <h1>Project Status</h1><br>
-       <div class="badge">
-        <h6>
-          <b>${data.For || ""}</b> • 
-          <b>${data.Category || ""} • </b> 
-          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
-        </h6>
-      </div>
+     <div class="details" style="padding-bottom: 20px; ">
+        <div class="badge2"><b>${data.Size || ""} Project</b></div>
+        <div class="badge2">
+          <b>${Math.floor((parseDuration(data.Duration) + totalExtra) / 7)} week(s)${
+            ((parseDuration(data.Duration) + totalExtra) % 7) ? ` + ${ (parseDuration(data.Duration) + totalExtra) % 7 } day(s)` : ""
+          } Duration</b>
+        </div>
+        <div class="badge2">
+          <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
+        </div></div>
 
 <div class="progress" id="status-flow" style="
   background:#fff;
@@ -368,40 +396,181 @@ border: 2px solid #3f72af
 </div>
 
 
-  ${STATUS_STEPS.map((name, i) => `
-    <div class="b3" data-status="${name}" style="
-      display:grid;
-      grid-template-columns:30px 1fr;
-      gap:15px;
-      position:relative;
-      font-size:14px;
-      line-height:1.5;
-    ">
-      <span class="badge step-number" data-index="${i}" style="
-        width:12px;
-        height:26px;
-        border-radius:0;
-        background:#f0f0f0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:13px;
-        color:#999;
-        flex-shrink:0;
-      ">✔️</span>
+ ${(() => {
+  const DAY = 86400000;
 
-      <div class="badge3" style="
-        font-size:14px; width: 90%;
-        color:#333;
-      ">${name}
-        <div style="
-          margin-top:4px;
-          font-size:12px;
-          color:#999;
-        ">${new Date().toISOString().slice(0,16).replace('T',' ')}</div>
+  // helper: normalize to date-only (midnight) to avoid time-of-day problems
+  const toDateOnly = d => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  };
+
+  const totalDays = Math.max(0, Math.round(parseDuration(data.Duration || 0) + (totalExtra || 0)));
+  // ensure startDate is normalized to midnight
+  const startDate = toDateOnly(new Date(data.StartDate));
+  // now as date-only
+  const now = toDateOnly(new Date());
+
+  const steps = STATUS_STEPS;
+
+  // --- 1) Allocate stage days with rounding ---
+  const rawStageDays = steps.map(name => {
+    const r = stageRatios[name] || 0;
+    return Math.max(0, Math.round(totalDays * r));
+  });
+
+  const sumRaw = rawStageDays.reduce((s, v) => s + v, 0);
+  if (sumRaw !== totalDays) {
+    const diff = totalDays - sumRaw;
+    let idx = rawStageDays.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0).pop();
+    if (idx === undefined || idx === -1) idx = rawStageDays.length - 1;
+    rawStageDays[idx] = Math.max(0, rawStageDays[idx] + diff);
+  }
+
+  // --- 2) Build ranges (date-only) ---
+  const stageRanges = [];
+  let acc = 0;
+  for (let i = 0; i < rawStageDays.length; i++) {
+    const d = rawStageDays[i];
+    if (d > 0) {
+      const sStart = new Date(startDate.getTime() + acc * DAY);
+      const sEnd = new Date(startDate.getTime() + (acc + d - 1) * DAY);
+      stageRanges[i] = { start: toDateOnly(sStart), end: toDateOnly(sEnd) };
+      acc += d;
+    } else {
+      stageRanges[i] = null;
+    }
+  }
+
+  // --- 3) Fill 0-day ranges with nearest neighbor ---
+  for (let i = 0; i < stageRanges.length; i++) {
+    if (!stageRanges[i]) {
+      let j = i + 1;
+      while (j < stageRanges.length && !stageRanges[j]) j++;
+      if (j < stageRanges.length && stageRanges[j]) {
+        stageRanges[i] = { ...stageRanges[j] };
+      } else {
+        let k = i - 1;
+        while (k >= 0 && !stageRanges[k]) k--;
+        if (k >= 0) stageRanges[i] = { ...stageRanges[k] };
+        else stageRanges[i] = { start: startDate, end: startDate };
+      }
+    }
+  }
+
+  // --- 4) Progress / Status label helpers ---
+  const fmt = d => d.toDateString();
+  const fmtDelta = days => {
+    days = Math.abs(Math.round(days));
+    const w = Math.floor(days / 7);
+    const r = days % 7;
+    if (w > 0 && r > 0) return `${w}w ${r}d`;
+    if (w > 0) return `${w} week${w > 1 ? "s" : ""}`;
+    return `${r} day${r !== 1 ? "s" : ""}`;
+  };
+
+  const plannedEndDate = toDateOnly(new Date(startDate.getTime() + (totalDays - 1) * DAY));
+  const elapsedDays = Math.floor((now - startDate) / DAY);
+
+  // infer actual progress
+  let actualCompletedDays = null;
+  let currentStageIdx = null;
+  const statusNameRaw = (data.Status || "").toString().trim();
+  const statusNameLower = statusNameRaw.toLowerCase();
+
+  if (statusNameRaw) {
+    const idx = steps.findIndex(s => (s || "").toString().trim().toLowerCase() === statusNameLower);
+    if (idx >= 0) currentStageIdx = idx;
+  }
+
+  if (currentStageIdx == null) {
+    const byEndIdx = stageRanges.findIndex(r => r && r.end && r.end.getTime() >= now.getTime());
+    if (byEndIdx >= 0) currentStageIdx = byEndIdx;
+  }
+
+  if (currentStageIdx != null) {
+    const idx = currentStageIdx;
+    actualCompletedDays = stageRanges[idx] ? Math.round((stageRanges[idx].start - startDate) / DAY) : 0;
+    const rawStageProgress = data.stageProgress || data.stagePercent;
+    if (rawStageProgress != null) {
+      let sp = Number(rawStageProgress);
+      if (!isNaN(sp)) {
+        if (sp > 1) sp = sp / 100;
+        sp = Math.max(0, Math.min(1, sp));
+        actualCompletedDays += Math.round(rawStageDays[idx] * sp);
+      }
+    }
+  }
+
+  if (actualCompletedDays == null && data.completedDays != null) {
+    actualCompletedDays = Math.max(0, Math.min(totalDays, Math.round(data.completedDays)));
+  }
+  if (actualCompletedDays == null && data.progressPercent != null) {
+    let pp = Number(data.progressPercent);
+    if (!isNaN(pp)) {
+      if (pp > 1) pp = pp / 100;
+      pp = Math.max(0, Math.min(1, pp));
+      actualCompletedDays = Math.round(totalDays * pp);
+    }
+  }
+
+  // --- NEW: Project-wide ahead/behind calculation ---
+  let statusLabelText = "";
+  if (actualCompletedDays != null) {
+    const plannedElapsed = Math.max(0, Math.min(totalDays, elapsedDays));
+    const delta = actualCompletedDays - plannedElapsed;
+
+    if (delta === 0) {
+      statusLabelText = `✅ Project is on track — exactly as planned`;
+    } else if (delta > 0) {
+      statusLabelText = `🚀 Project is ahead by ${fmtDelta(delta)}`;
+    } else {
+      statusLabelText = `⏳ Project is behind by ${fmtDelta(-delta)}`;
+    }
+  } else {
+    const delta = Math.ceil((now - plannedEndDate) / DAY);
+    if (delta <= 0) {
+      statusLabelText = `🚀 Project is ahead by ${fmtDelta(-delta)} — planned completion ${fmt(plannedEndDate)}`;
+    } else {
+      statusLabelText = `⏳ Project is past due by ${fmtDelta(delta)}`;
+    }
+  }
+
+  const labelColor = statusLabelText.includes("on track") ? "#28a745"
+                    : statusLabelText.includes("ahead") ? "#17a2b8"
+                    : "#dc3545";
+
+  // --- 5) Render HTML ---
+  const stagesHtml = steps.map((name, i) => {
+    const { start, end } = stageRanges[i];
+    return `
+      <div class="b3" data-status="${name}" style="
+        display:grid; grid-template-columns:30px 1fr; gap:15px; position:relative; font-size:14px; line-height:1.5;">
+        <span class="badge step-number" data-index="${i}" style="
+          width:12px; height:26px; border-radius:0; background:#f0f0f0;
+          display:flex; align-items:center; justify-content:center;
+          font-size:13px; color:#999; flex-shrink:0;">✔️</span>
+        <div class="badge3" style="font-size:14px; width:90%; color:#333;">
+          ${name}
+          <div style="margin-top:4px; font-size:12px; color:#999;">
+            ${fmt(start)} → ${fmt(end)}
+          </div>
+        </div>
       </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="project-status-label" style="
+      padding:10px 12px; margin-bottom:10px; border-radius:6px;
+      font-size:14px; font-weight:600; color:#fff; background:${labelColor};
+      display:inline-block;">
+      ${statusLabelText}
     </div>
-  `).join("")}
+    ${stagesHtml}
+  `;
+})()}
 
 </div></div></div></div>
 
@@ -409,7 +578,7 @@ border: 2px solid #3f72af
    
 
 <div class="container pad">
- <h1> Date Extensions</h1>
+ <h1> Duration Extension</h1>
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
         <p class="dates" id="perc"> • ${percent}% completed </p>
