@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Project Details</title>
-  <meta name="viewport" content="width=device-width, initial-scale=0.0.64, maximum-scale=0.64, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=0.6, maximum-scale=0.6, user-scalable=no">
 <script src="https://kit.fontawesome.com/419bf59dd3.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link rel="manifest" href="manifest.json">
@@ -281,7 +281,7 @@ margin-top: 15px;
 </div>
 
 
-    <div  class="container1">
+    <div style=" border: 4px solid var(--bg1);"  class="container1">
 
 
      
@@ -317,8 +317,11 @@ margin-top: 15px;
     
     </div>
 <div class="main">
-    <div style="margin-top: 50px;"class="container ">
-      <div class="details">
+    <div style="padding-top: 40px; margin-top: 40px;"class="container ">
+      
+        <h1 style="margin-top: 2px; font-size: 32px; padding: 5px;"> Project Details</h1><br>
+
+<div class="details" style="padding-bottom: 20px; ">
         <div class="badge2"><b>${data.Size || ""} Project</b></div>
         <div class="badge2">
           <b>${Math.floor((parseDuration(data.Duration) + totalExtra) / 7)} week(s)${
@@ -327,20 +330,98 @@ margin-top: 15px;
         </div>
         <div class="badge2">
           <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
-        </div>
+        </div></div>
 
-        <h1 style="margin-top: 20px; font-size: 32px; margin-bottom: 10px; padding: 5px;"> Project Status</h1><br>
        
-  <div style="display: flex; " class="progress1">
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr;
+grid-template-rows: 130px 130px 130px 130px 50px;
+" class="progress1">
             <div style="border: 1px solid #3f72af" class="container">
-              <label>Started on</label>
-              <p class="dates"><i class="fa fa-calendar"></i> ${new Date(data.StartDate).toDateString()}</p>
+              <label><i class="fa fa-calendar"></i> Started on</label>
+              <p class="dates">• ${new Date(data.StartDate).toDateString()}</p>
             </div>
             <div style="border: 1px solid #3f72af" class="container">
-              <label>Due On</label>
-              <p class="dates"><i class="fa fa-calendar-check"></i> ${dueDate.toDateString()}</p>
+              <label><i class="fa fa-calendar-check"></i> Due On</label>
+              <p class="dates">• ${dueDate.toDateString()}</p>
+            </div>
+
+<div style="border: 1px solid #3f72af" class="container">
+              <label><i class="fa fa-clock"></i> Duration</label>
+              <p style="position: relative; "class="dates">• ${data.Duration}  <span style="color: #3f72af;">+ ${totalExtra} days</span>
+</p>
+            </div>
+
+<div style="border: 1px solid #3f72af; max-height: 115px;" class="container">
+              <label><i class="fa fa-list"></i> Category</label>
+              <p style="position: relative; "class="dates">• ${data.Category} 
+</p>
+            </div>
+
+
+<div style="border: 1px solid #3f72af; grid-column: span 2; display: flex; justify-content: space-between;
+  flex-direction: row;" class="container"><div>
+              <label><i class="fa fa-bars-progress"></i> Status</label>
+              <p class="dates">• ${data.Status || 'Fact Finding'}</p></div>
+
+<div style=" border-radius: 2px; width: 50%; right: 0;">
+            <div style="border-radius: 6px; height: 20px;"class="progress-bar"><span id="progress-span2" style="width:${percent}%"></span></div>
+            <p class="dates" style="border-left: 3px solid var(--bg3); font-weight: 600; font-size: 11px; padding-left: 5px;"><span id="progress-label">${percent}% </span> done. </p>
+          </div>
+            </div>
+
+<div style="border: 1px solid #3f72af; grid-column: span 2;" class="container">
+              <label style="display: flex; gap: 5px;
+  "><i class="fa fa-user-shield"></i> For | <p style="margin-top: 2px;"class="dates"> ${data.For}</p></label>
+
+              <div style="display: flex;
+
+flex-direction: row;
+gap: 10px; /* adjust the gap size */
+" class="dates">  
+            ${data.CompanyName ? `<b><i class="fa-solid fa-building"></i> ${data.CompanyName}</b>` : ""}
+            ${data.Sponsor ? ` <b>    <i class="fa-solid fa-user-tag"></i> ${data.Sponsor}</b>` : ""}
+          </div>
+          <div style="display: flex;
+
+flex-direction: row;
+gap: 10px; /* adjust the gap size */
+"class="dates"> 
+            ${data.ClientName ? `<b><i class="fa-solid fa-user-tag"></i> ${data.ClientName}</b>` : ""} 
+            ${data.Occupation ? `<b> <i class="fa-solid fa-briefcase"></i> ${data.Occupation}</b>` : ""}
+          </div>
+            </div>
+
+<div style="border: 1px solid #3f72af; padding-bottom: 15px;" class="container">
+              <label "><i class="fa  fa-ruler"></i> Size</label>
+              <p class="dates">• ${data.Size} project</p>
+            </div>
+
+
+<div style="border: 1px solid #3f72af; grid-column: span 3;" class="container">
+              <label><i class="fa fa-pen-to-square"></i> Special Requests & Description</label>
+                <p class="dates">${data.Description || ""}</p>
+          ${
+            data.SpecialRequests && data.SpecialRequests.length > 0
+              ? data.SpecialRequests
+                  .filter(req => req && req.trim() !== "")
+                  .map(req => `<div class="badge2"><b>${req}</b></div>`)
+                  .join(" ")
+              : ""
+          }
             </div>
           </div>
+</div>
+ 
+</div></div>
+
+<div class="container" style="margin-top: 50px;">
+ <h1>Project Status</h1>
+      <div style="display:flex; margin-bottom:25px; gap:9px;">
+        <p class="dates">${effectiveStatus}</p>
+        <p class="dates" id="perc"> • ${percent}% completed </p>
+        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+      </div>
+
 <div class="progress" id="status-flow" style="
   background:#fff;
   border:1px solid #dcdcdc;
@@ -354,12 +435,13 @@ margin-top: 15px;
 overflow: hidden;
 border: 2px solid #3f72af
 ">
-<div style="background-color: #3f72af; padding: 20px; margin: -20px; margin-bottom: 10px;   display: flex;   justify-content: space-between;
-  flex-direction: row;">
-  <h1 style="margin: 0; border: 0; "><i class="fa fa-tasks"></i> Track Progress</h1>    <div style=" width: 45%; right: 0;">
-            <div class="progress-bar"><span id="progress-span" style="width:${percent}%"></span></div>
-            <p class="dates"><span id="progress-label">${percent}%</span> completed.</p>
+<div style="background-color: #3f72af; padding: 25px; margin: -20px; margin-bottom: 10px;   display: flex;   justify-content: space-between;
+  flex-direction: row; max-height: 30px;">
+  <h1 style="margin: 0; border: 0; "><i class="fa fa-tasks"></i> Track Progress</h1>    
+            <div style="height: 25px; border-radius: 5px; width: 35%; right: 0; margin-right: -5px; margin-top: 4px;" class="progress-bar"> <span id="progress-span" style="width:${percent}%"></span>
+         
           </div>
+
 
 </div>
 
@@ -643,11 +725,13 @@ numEl.style.borderRadius = "50%";
 
   const percent = progressPercentForStatus(currentStatus);
   const span = document.getElementById("progress-span");
+const span2 = document.getElementById("progress-span2");
   const lab = document.getElementById("progress-label");
 
   if (span) {
     span.style.width = `${percent}%`;
     span.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
+span2.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
   }
   if (lab) lab.textContent = `${percent}%`;
 document.querySelectorAll('[id="perc"]').forEach(el => {
@@ -1226,22 +1310,25 @@ body {
   margin: 0;
   color: var(--ink);
   display: flex;
-  
+  justify-content: center;
+  align-items: flex-start;
   min-height: 100vh;
-  min-width: 100vw;
+  
 }
 
 /* ---------- CARD CONTAINER ---------- */
 .container {
   background: var(--card);
-  padding: 30px;
+  padding: 25px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 900px;
+  width: 97%;
+  
   box-sizing: border-box;
   transition: transform var(--speed) ease, box-shadow var(--speed) ease;
+margin: 10px;
   margin-bottom: 20px;
+
 }
 .container:hover {
   transform: translateY(-4px);
@@ -1264,6 +1351,7 @@ body {
   border-bottom-right-radius: 50% 12%;
 padding-top: 100px;
 top: 0px;
+
 
 
 }
@@ -1330,10 +1418,11 @@ top: 0px;
 /* ---------- HEADINGS ---------- */
 h1 {
   margin: 0;
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
   color: var(--ink);
   border-left: 5px solid var(--accent);
+padding-left: 5px;
 }
 
 /* ---------- NAVBAR ---------- */
@@ -1517,7 +1606,7 @@ label {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
-  color: var(--accent);
+  color: #e2ebff;
 }
 .dates {
   color: var(--accent);
