@@ -320,7 +320,13 @@ margin-top: 15px;
         
           <b>${data.For || ""}</b> • 
           <b>${data.Category || ""} • </b> 
-          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
+          <span class="dates" style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  • ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+      ? "Project completed"
+      : "due " + relativeInfo}
+</span>
         
       </div>
 
@@ -369,7 +375,15 @@ margin-top: 15px;
           } Duration</b>
         </div>
         <div class="badge2">
-          <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
+         <b style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+    ? "Project completed"
+    : (daysLeft >= 0 
+        ? daysLeft + " day(s) left" 
+        : Math.abs(daysLeft) + " day(s) ago")}
+</b>
         </div></div>
 
 <div class="progress" id="status-flow" style="
@@ -491,7 +505,15 @@ border: 2px solid #3f72af
 
   if (currentStageIdx != null) {
     const idx = currentStageIdx;
-    actualCompletedDays = stageRanges[idx] ? Math.round((stageRanges[idx].start - startDate) / DAY) : 0;
+    actualCompletedDays = stageRanges[idx] 
+  ? Math.round((stageRanges[idx].start - startDate) / DAY) 
+  : 0;
+
+// if today is inside this stage, include progress up to today
+if (stageRanges[idx] && now >= stageRanges[idx].start && now <= stageRanges[idx].end) {
+  actualCompletedDays += Math.floor((now - stageRanges[idx].start) / DAY) ;
+}
+
     const rawStageProgress = data.stageProgress || data.stagePercent;
     if (rawStageProgress != null) {
       let sp = Number(rawStageProgress);
@@ -516,30 +538,37 @@ border: 2px solid #3f72af
   }
 
   // --- NEW: Project-wide ahead/behind calculation ---
-  let statusLabelText = "";
-  if (actualCompletedDays != null) {
-    const plannedElapsed = Math.max(0, Math.min(totalDays, elapsedDays));
-    const delta = actualCompletedDays - plannedElapsed;
+  // --- NEW: Project-wide ahead/behind calculation ---
+let statusLabelText = "";
 
-    if (delta === 0) {
-      statusLabelText = `✅ Project is on track — exactly as planned`;
-    } else if (delta > 0) {
-      statusLabelText = `🚀 Project is ahead by ${fmtDelta(delta)}`;
-    } else {
-      statusLabelText = `⏳ Project is behind by ${fmtDelta(-delta)}`;
-    }
+// 👇 ADD THIS CHECK FIRST
+if ((data.Status || "").toString().trim().toLowerCase() === "complete") {
+  statusLabelText = "🎉 Project successfully completed";
+} else if (actualCompletedDays != null) {
+  const plannedElapsed = Math.max(0, Math.min(totalDays, elapsedDays));
+  const delta = actualCompletedDays - plannedElapsed;
+
+  if (delta === 0) {
+    statusLabelText = `✅ Project is on track — exactly as planned`;
+  } else if (delta > 0) {
+    statusLabelText = `🚀 Project is ahead by ${fmtDelta(delta)}`;
   } else {
-    const delta = Math.ceil((now - plannedEndDate) / DAY);
-    if (delta <= 0) {
-      statusLabelText = `🚀 Project is ahead by ${fmtDelta(-delta)} — planned completion ${fmt(plannedEndDate)}`;
-    } else {
-      statusLabelText = `⏳ Project is past due by ${fmtDelta(delta)}`;
-    }
+    statusLabelText = `⏳ Project is behind by ${fmtDelta(-delta)}`;
   }
+} else {
+  const delta = Math.ceil((now - plannedEndDate) / DAY);
+  if (delta <= 0) {
+    statusLabelText = `🚀 Project is ahead by ${fmtDelta(-delta)} — planned completion ${fmt(plannedEndDate)}`;
+  } else {
+    statusLabelText = `⏳ Project is past due by ${fmtDelta(delta)}`;
+  }
+}
 
-  const labelColor = statusLabelText.includes("on track") ? "#28a745"
-                    : statusLabelText.includes("ahead") ? "#17a2b8"
-                    : "#dc3545";
+const labelColor = statusLabelText.includes("successfully")
+                  ? "#007bff" // ✅ new color for completed projects
+                  : statusLabelText.includes("on track") ? "#28a745"
+                  : statusLabelText.includes("ahead") ? "#17a2b8"
+                  : "#dc3545";
 
   // --- 5) Render HTML ---
   const stagesHtml = steps.map((name, i) => {
@@ -582,7 +611,13 @@ border: 2px solid #3f72af
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
         <p class="dates" id="perc"> • ${percent}% completed </p>
-        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+     <p class="dates" style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  • ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+      ? "Project completed"
+      : "due " + relativeInfo}
+</p>
       </div>
 
         <div style="max-width:100%; grid-template-columns:190px 1fr; display:grid; gap: 12px;height:100%;">
@@ -596,7 +631,7 @@ border: 2px solid #3f72af
               <div class="badge2 ext-btn" data-days="21">+3 weeks</div>
             </div>
           </div>
-          
+
           <div style="border: 1px solid #3f72af; padding: 15px;" class="container">
             <label><i class="fa fa-info-circle"></i> Reason</label>
             <div class="">
@@ -624,7 +659,13 @@ border: 2px solid #3f72af
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
         <p class="dates" id="perc"> • ${percent}% completed </p>
-        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+       <p class="dates" style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  • ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+      ? "Project completed"
+      : "due " + relativeInfo}
+</p>
       </div>
 
       <div style="
@@ -671,7 +712,13 @@ border: 2px solid #3f72af
   <div style="display:flex; margin-bottom:25px; gap:9px; font-size:0.95rem; color:var(--accent);">
     <p class="dates" style="margin:0; color:var(--accent-strong);">${effectiveStatus}</p>
     <p class="dates" id="perc" style="margin:0; color:var(--muted);"> • ${percent}% completed </p>
-    <p class="dates" style="margin:0; color:${dueColor};"> • due ${relativeInfo}</p>
+  <p class="dates" style="margin: 0; color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  • ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+      ? "Project completed"
+      : "due " + relativeInfo}
+</p>
   </div>
 
   <div style="max-width:100%; padding:18px; border: 1px solid #3f72af; border-radius:var(--radius); background:var(--card); font-family:Arial, sans-serif; color:var(--ink);">
@@ -725,7 +772,15 @@ border: 2px solid #3f72af
           } Duration</b>
         </div>
         <div class="badge2">
-          <b style="color:${dueColor};">${daysLeft >= 0 ? daysLeft + " day(s) left" : Math.abs(daysLeft) + " day(s) ago"}</b>
+         <b style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+    ? "Project completed"
+    : (daysLeft >= 0 
+        ? daysLeft + " day(s) left" 
+        : Math.abs(daysLeft) + " day(s) ago")}
+</b>
         </div></div>
 
        
@@ -817,7 +872,13 @@ gap: 10px; /* adjust the gap size */
       <div style="display:flex; margin-bottom:25px; gap:9px;">
         <p class="dates">${effectiveStatus}</p>
         <p class="dates" id="perc"> • ${percent}% completed </p>
-        <p class="dates" style="color:${dueColor};"> • due ${relativeInfo}</p>
+       <p class="dates" style="color:${(data.Status || "").toString().trim().toLowerCase() === "complete" 
+      ? "#28a745"   // ✅ green for completed
+      : dueColor};">
+  • ${(data.Status || "").toString().trim().toLowerCase() === "complete"
+      ? "Project completed"
+      : "due " + relativeInfo}
+</p>
       </div>
       <div style="max-width:100%; padding:18px; border: 1px solid #3f72af; border-radius:var(--radius); background:var(--card); font-family:Arial, sans-serif; color:var(--ink);"class="container">
         <p><b>Emails</b><br>
@@ -1330,39 +1391,35 @@ if (commit.changes.length || commit.extensions.length) {
 // Email modal after commit
 function openEmailModalAfterCommit(data, commit) {
   const wrapper = document.createElement('div');
-  wrapper.style.position = 'fixed';
-  wrapper.style.inset = '0';
-  wrapper.style.background = 'rgba(0,0,0,0.55)';
-  wrapper.style.display = 'flex';
-  wrapper.style.alignItems = 'center';
-  wrapper.style.justifyContent = 'center';
-  wrapper.style.zIndex = '9999';
+  wrapper.className = "email-modal-wrapper";
 
   const panel = document.createElement('div');
-  panel.style.background = '#fff';
-  panel.style.width = '92%';
-  panel.style.maxWidth = '600px';
-  panel.style.borderRadius = '12px';
-  panel.style.padding = '20px';
+  panel.className = "email-modal-panel";
 
   const emails = Array.isArray(data.Emails) ? data.Emails : [];
   panel.innerHTML = `
-    <h2 style="margin-top:0;">Send Progress Email?</h2>
+    <h1 style="color: white; "class="modal-title">Send Progress Email?</h1>
     <p class="dates">A commit was saved. Would you like to email a progress update?</p>
     <div style="margin:10px 0;">
       ${
         emails.length
           ? `<label class="dates">Select recipient(s):</label>
-             <div id="email-picks" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:6px;">
-               ${emails.map(e => `<label class="badge2"><input type="checkbox" value="${e}" style="margin-right:6px;">${e}</label>`).join("")}
-               <label class="badge2"><input type="checkbox" value="__ALL__" style="margin-right:6px;">Both</label>
+             <div id="email-picks" class="email-picks">
+               ${emails.map(e => `
+                 <label class="badge2">
+                   <input type="checkbox" value="${e}"> ${e}
+                 </label>
+               `).join("")}
+               <label class="badge2">
+                 <input type="checkbox" value="__ALL__"> All
+               </label>
              </div>`
-          : `<p class="dates" style="color:#a00;">No emails saved for this project.</p>`
+          : `<p class="dates no-emails">No emails saved for this project.</p>`
       }
     </div>
-    <div style="display:flex; gap:10px; justify-content:flex-end;">
-      <button id="no-email" class="btn badge2">No</button>
-      <button id="send-email" class="btn-success btn">Send</button>
+    <div class="modal-actions">
+      <button id="no-email" class="btn btn-cancel">No</button>
+      <button id="send-email" class="btn btn-send">Send</button>
     </div>
   `;
   wrapper.appendChild(panel);
@@ -1385,19 +1442,100 @@ function openEmailModalAfterCommit(data, commit) {
       }
 
       if (window.emailjs && emailjs.send) {
-  for (const to of recipients) {
-    await emailjs.send("service_yekq70e", "template_8in927p", {
-      to_email: to,
-      project_name: data.ProjectName || "",
-      status: projectData.Status || "",
-      percentage: projectData.Percentage || 0,
-      commit_summary: JSON.stringify(commit, null, 2)
-    });
-  }
-  alert("✅ Progress email sent.");
-} else {
-  alert("⚠️ EmailJS not loaded. Make sure the script + init() are included.");
-}
+        for (const to of recipients) {
+          const message = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Update</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #ddd;
+    }
+    .header {
+      background-color: #2B4C6F;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      padding: 20px;
+      color: #333333;
+    }
+    .content h2 {
+      color: #2B4C6F;
+      margin-top: 0;
+    }
+    .details {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      margin-bottom: 15px;
+    }
+    .footer {
+      background-color: #2B4C6F;
+      color: #ffffff;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+    }
+    .label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      <h1>Project Update Notification</h1>
+    </div>
+    <div class="content">
+      <h2>Project: <span class="label">${data.ProjectName || ""}</span></h2>
+      <p>Status: <span class="label">${projectData.Status || ""}</span></p>
+      <p>Progress: <span class="label">${projectData.Percentage || 0}%</span></p>
+      <h3>Commit Summary:</h3>
+      <div class="details">
+        ${JSON.stringify(commit, null, 2)}
+      </div>
+    </div>
+    <div class="footer">
+      This is an automated notification from your Project Tracker.
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+await emailjs.send("service_yekq70e", "template_8in927p", {
+  to_email: to,
+  message_html: message
+});
+
+        }
+        alert("✅ Progress email sent.");
+      } else {
+        alert("⚠️ EmailJS not loaded. Make sure the script + init() are included.");
+      }
       document.body.removeChild(wrapper);
     } catch (e) {
       alert("❌ Email send failed: " + (e?.message || e));
@@ -1968,6 +2106,81 @@ transition: all 0s ease;
   font-size: 0.9rem;
   display: flex;
 transition: all 0s ease;
+}
+.email-modal-wrapper {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.email-modal-panel {
+  background: var(--card);
+  color: var(--ink);
+  width: 92%;
+  max-width: 600px;
+  border-radius: var(--radius);
+  padding: 22px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--card-border);
+  animation: fadeIn var(--speed) ease;
+}
+
+.modal-title {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.email-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.no-emails {
+  color: var(--danger);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background var(--speed), transform var(--speed);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: var(--light-gray);
+  color: var(--muted);
+}
+
+.btn-send {
+  background: var(--success);
+  color: var(--ink);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
 }
  
 </style>
