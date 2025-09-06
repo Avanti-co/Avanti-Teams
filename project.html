@@ -402,7 +402,7 @@ border: 2px solid #3f72af
 <div style="background-color: #3f72af; padding: 25px; margin: -20px; margin-bottom: 10px;   display: flex;   justify-content: space-between;
   flex-direction: row; max-height: 30px;">
   <h1 style="margin: 0; border: 0; "><i class="fa fa-tasks"></i> Track Progress</h1>    
-            <div style="height: 25px; border-radius: 5px; width: 35%; right: 0; margin-right: -5px; margin-top: 4px;" class="progress-bar"> <span id="progress-span" style="width:${percent}%"></span>
+            <div style="height: 20px; border-radius: 5px; width: 35%; right: 0; margin-right: -5px; margin-top: 4px;" class="progress-bar"> <span id="progress-span" style="width:${percent}%"></span>
          
           </div>
 
@@ -981,8 +981,10 @@ const span2 = document.getElementById("progress-span2");
 
   if (span) {
     span.style.width = `${percent}%`;
-    span.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
-span2.style.background = "linear-gradient(90deg,#3ad29f ,#6c7cff)";
+span2.style.width = `${percent}%`;
+    span.style.background = "#a7d3ff";
+span2.style.background = "#a7d3ff";
+
   }
   if (lab) lab.textContent = `${percent}%`;
 document.querySelectorAll('[id="perc"]').forEach(el => {
@@ -1957,7 +1959,7 @@ margin-top: 60px;
 }
 .progress-bar {
   height: 9px;
-  background: var(--chip);
+  background: var(--bg3);
   border-radius: 999px;
   border: 1px solid var(--chip-border);
   overflow: hidden;
