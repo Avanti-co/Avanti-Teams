@@ -291,7 +291,13 @@ margin-top: 15px;
 
 
     <div  class="container1">
-
+ <div style="margin-bottom: 20px;"class="badge2">
+        
+          <b>${data.For || ""}</b> • 
+          <b>${data.Category || ""} • </b> 
+          <span style="color:${dueColor}; font-weight:bold">due ${relativeInfo}</span>
+        
+      </div>
 
      
 
@@ -326,7 +332,7 @@ margin-top: 15px;
     
     </div>
 <div class="main">
-    <div style="margin-top: 40px;"class="container ">
+    <div style=" margin-top: 40px;"class="container ">
       
         <h1 style="margin-top: 2px; font-size: 32px; padding: 5px;"> Project Details</h1><br>
 
@@ -1354,7 +1360,8 @@ margin: 10px;
   transition: transform var(--speed) ease, box-shadow var(--speed) ease;
   margin-bottom: 20px;
   overflow: visible;
-  padding-top: 100px;
+  
+padding-top: 80px;
 top: 0px;
 
 
