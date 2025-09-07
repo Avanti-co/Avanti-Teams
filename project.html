@@ -1400,7 +1400,7 @@ function openEmailModalAfterCommit(data, commit) {
 
   const emails = Array.isArray(data.Emails) ? data.Emails : [];
   panel.innerHTML = `
-    <h1 style="color: white; "class="modal-title">Send Progress Email?</h1>
+    <h1 style="color: white;" class="modal-title">Send Progress Email?</h1>
     <p class="dates">A commit was saved. Would you like to email a progress update?</p>
     <div style="margin:10px 0;">
       ${
@@ -1427,10 +1427,13 @@ function openEmailModalAfterCommit(data, commit) {
   wrapper.appendChild(panel);
   document.body.appendChild(wrapper);
 
+  // NO button: remove modal and reload
   panel.querySelector('#no-email').addEventListener('click', () => {
     document.body.removeChild(wrapper);
+    location.reload();
   });
 
+  // SEND button: attempt email, then reload no matter what
   panel.querySelector('#send-email').addEventListener('click', async () => {
     try {
       const picks = Array.from(panel.querySelectorAll('#email-picks input[type="checkbox"]:checked')).map(i => i.value);
@@ -1440,6 +1443,8 @@ function openEmailModalAfterCommit(data, commit) {
 
       if (!recipients.length) {
         alert("⚠️ Select at least one recipient.");
+        document.body.removeChild(wrapper);
+        location.reload();
         return;
       }
 
@@ -1452,107 +1457,49 @@ function openEmailModalAfterCommit(data, commit) {
   <meta charset="UTF-8">
   <title>Project Update</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .email-container {
-      max-width: 600px;
-      margin: 20px auto;
-      background-color: #ffffff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 1px solid #ddd;
-    }
-    .header {
-      background-color: #2B4C6F;
-      color: #ffffff;
-      padding: 20px;
-      text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-    .content {
-      padding: 20px;
-      color: #333333;
-    }
-    .content h2 {
-      color: #2B4C6F;
-      margin-top: 0;
-    }
-    .details {
-      background-color: #f9f9f9;
-      padding: 15px;
-      border-radius: 5px;
-      font-family: monospace;
-      white-space: pre-wrap;
-      overflow-x: auto;
-      margin-bottom: 15px;
-    }
-    .footer {
-      background-color: #2B4C6F;
-      color: #ffffff;
-      text-align: center;
-      padding: 10px;
-      font-size: 12px;
-    }
-    .label {
-      font-weight: bold;
-    }
+    body { font-family: Arial; background:#f4f4f4; margin:0; padding:0; }
+    .email-container { max-width:600px; margin:20px auto; background:#fff; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1); border:1px solid #ddd; }
+    .header { background:#2B4C6F; color:#fff; padding:20px; text-align:center; }
+    .header h1 { margin:0; font-size:24px; }
+    .content { padding:20px; color:#333; }
+    .content h2 { color:#2B4C6F; margin-top:0; }
+    .details { background:#f9f9f9; padding:15px; border-radius:5px; font-family:monospace; white-space:pre-wrap; overflow-x:auto; margin-bottom:15px; }
+    .footer { background:#2B4C6F; color:#fff; text-align:center; padding:10px; font-size:12px; }
+    .label { font-weight:bold; }
   </style>
 </head>
 <body>
   <div class="email-container">
-    <div class="header">
-      <h1>Project Update Notification</h1>
-    </div>
+    <div class="header"><h1>Project Update Notification</h1></div>
     <div class="content">
       <h2>Project: <span class="label">${data.ProjectName || ""}</span></h2>
       <p>Status: <span class="label">${projectData.Status || ""}</span></p>
       <p>Progress: <span class="label">${projectData.Percentage || 0}%</span></p>
       <h3>Commit Summary:</h3>
-      <div class="details">
-        ${JSON.stringify(commit, null, 2)}
-      </div>
+      <div class="details">${JSON.stringify(commit, null, 2)}</div>
     </div>
-    <div class="footer">
-      This is an automated notification from your Project Tracker.
-    </div>
+    <div class="footer">This is an automated notification from your Project Tracker.</div>
   </div>
 </body>
 </html>
 `;
-
-await emailjs.send("service_yekq70e", "template_8in927p", {
-  to_email: to,
-  message_html: message
-});
-
+          await emailjs.send("service_yekq70e", "template_8in927p", {
+            to_email: to,
+            message_html: message
+          });
         }
         alert("✅ Progress email sent.");
       } else {
         alert("⚠️ EmailJS not loaded. Make sure the script + init() are included.");
       }
-      document.body.removeChild(wrapper);
     } catch (e) {
       alert("❌ Email send failed: " + (e?.message || e));
+    } finally {
+      document.body.removeChild(wrapper);
+      location.reload();
     }
   });
 }
-
-// ---- Leave page guard ----
-window.addEventListener('beforeunload', (e) => {
-  if (unsaved) {
-    e.preventDefault();
-    e.returnValue = "Project not saved";
-    return "Project not saved";
-  }
-});
 
 // ---- Loader & bootstrap ----
 async function loadProject() {
