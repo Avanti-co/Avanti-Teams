@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Emerging Technology Trends</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Avanti.ledger</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+      <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#008080">
 
 <script>
@@ -16,98 +17,225 @@
     });
   }
 </script>
-  <style>
-    [contenteditable="true"]:hover {
-      outline: 1px dashed #4A73A6;
-      cursor: text;
-    }
-    img.editable-image {
-      cursor: pointer;
-      outline: 2px dashed transparent;
-    }
-    img.editable-image:hover {
-      outline: 2px dashed #4A73A6;
-    }
-    #doneBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #4A73A6;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      z-index: 9999;
-    }
-    #doneBtn:hover {
-      background: #3b5d87;
-    }
-  </style>
+    <style>
+        /* Email Reset */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            color: #1e293b;
+        }
+        table {
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 0;
+        }
+        img {
+            border: 0;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #f4f6f9;
+            padding: 30px 0;
+        }
+        .main-container {
+            background-color: #ffffff;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 540px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        .icon-badge {
+            background-color: #edf4fc;
+            color: #3f72af;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            text-align: center;
+            line-height: 44px;
+            font-size: 18px;
+            display: inline-block;
+        }
+        .cta-button {
+            background-color: #3f72af;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 36px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(63, 114, 175, 0.25);
+        }
+        /* Mobile Responsiveness */
+        @media screen and (max-width: 600px) {
+            .wrapper {
+                padding: 0 !important;
+            }
+            .main-container {
+                border-radius: 0 !important;
+                border: none !important;
+            }
+            .content-padding {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+        }
+    </style>
 </head>
-<body style="margin:0; padding:0; background:white">
+<body>
 
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:white;">
-    <tr>
-      <td align="center" style="padding:24px 12px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%; max-width:600px;">
-          <tr>
-            <td style="background:#ffffff; padding:32px 28px; border-radius:8px;">
-<div class="brand" aria-hidden="true" style=" display:flex;align-items:center;gap:12px;font-weight:800;
-      letter-spacing:0.6px;">
-<div style="transition: transform 5s; transform: rotate(0deg);" onmouseover="this.style.transform='rotate(360deg)'" onmouseout="this.style.transform='rotate(0deg)'" class="logo-mark" id="logo-mark">
-    <img src="https://ik.imagekit.io/3mtmeexff/IMG_8590.jpeg?updatedAt=1755948361293" class="logo-mark" id="logo-mark" style=" text-align: left;width:48px;height:48px;border-radius:17px;
-      display:flex;align-items:center;justify-content:center;
-      background:linear-gradient(135deg,var(--white), rgba(255,255,255,0.85));
-      color:var(--dark); font-weight:800; font-size:20px;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.5);">
-
-</div>
-      <div>
-        <div style="font-size:18px;"><a style="margin:0 0 12px 0; font-family:Arial, Helvetica, sans-serif; font-size:25px; line-height:28px; color: #3f72af;"> Avanti</a> </div>
-        <div style="font-size:13px;color: #233045;font-weight:600; font-family:Arial, Helvetica, sans-serif;"> Design • Develop • Evolve</div>
-      </div>
-    </div>
-<br><br>
-              <h1 contenteditable="true" style="margin:0 0 12px 0; font-family:Arial, Helvetica, sans-serif; font-size:22px; line-height:28px; color:#233045;">
-                Emerging Technology Trends
-              </h1>
-              <p contenteditable="true" style="margin:0 0 18px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#6B7C93;">
-                Stay updated with the latest technologies shaping your industry.
-              </p>
-              <ul style="padding-left:18px; margin:0 0 14px; font-family:Arial, Helvetica, sans-serif; font-size:14px; line-height:22px; color:#233045;">
-                <li contenteditable="true" style="margin-bottom:8px;">AI-driven automation</li><li contenteditable="true" style="margin-bottom:8px;">Blockchain adoption</li><li contenteditable="true" style="margin-bottom:8px;">Sustainable and green tech solutions</li>
-              </ul>
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
-                <tr>
-                  <td align="center" bgcolor="#0F2A45" style="border-radius:6px;">
-                    <a href="{{action_link}}" class="editable-link" style="display:inline-block; padding:12px 18px; font-family:Arial, Helvetica, sans-serif; font-size:14px; color:#ffffff; text-decoration:none; font-weight:bold;">
-                      Explore Tech Trends
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              <hr style="border:none; border-top:1px solid #E5ECF6; margin:28px 0;">
-              <p contenteditable="true" style="margin:0; font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:18px; color:#6B7C93;">
-                AVANTI • Design, Develop, Evolve<br>
-                You’re receiving this because you’re an Avanti client or partner. 
-                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline;">Manage preferences</a> · 
-                <a href="#" class="editable-link" style="color:#1E3E63; text-decoration:underline;">Unsubscribe</a>
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td align="center" style="padding:14px 10px; color:#DCE6F3; font-family:Arial, Helvetica, sans-serif; font-size:11px;">
-              © 2025 Avanti. All rights reserved.
-            </td>
-          </tr>
+    <center class="wrapper">
+        <table class="main-container" width="100%" cellpadding="0" cellspacing="0">
+            
+            <tr>
+                <td style="padding: 36px 32px 20px 32px; text-align: left;" class="content-padding">
+ <div style="border-radius:12px; overflow:hidden; border:1px solid #e2e8f0; background:#f8fafc; ">
+    <a href="https://your-avanti-webpage-url.com" target="_blank" style="display:block; text-decoration:none;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse; border-spacing:0;">
+            <tr>
+                <td width="50%" style="padding:0; margin:0; line-height:0; font-size:0;">
+                    <img
+                        src="https://ik.imagekit.io/3mtmeexff/logo2.jpeg?updatedAt=1754891443785"
+                        alt="Avanti Image 1"
+                        width="100%"
+                        style="display:block; width:100%; height:auto; border:0; margin:0; padding:0;">
+                </td>
+              
+            </tr>
         </table>
-      </td>
-    </tr>
-  </table>
+    </a>
+</div>
+                </td>
+            </tr>
 
-  <button id="doneBtn">Done</button>
+            <tr>
+                <td style="padding: 10px 32px 20px 32px;" class="content-padding">
+                    <h1 style="color: #0f172a; font-size: 24px; font-weight: 800; margin: 0 0 12px 0; line-height: 1.3; letter-spacing: -0.3px;">
+                        Welcome to Smart Financial Intelligence
+                    </h1>
+                    <p style="font-size: 15px; color: #475569; line-height: 1.6; margin: 0 0 24px 0;">
+                        You are officially set up on <strong>Avanti.ledger</strong>. Take control of your store's operations, monitor real-time profit margins, and keep your business balanced with effortless precision.
+                    </p>
+
+                  
+
+                        <a href="https://your-avanti-webpage-url.com" target="_blank">
+                            <img src="https://ik.imagekit.io/3mtmeexff/IMG_3460.png" alt="Avanti Ledger Interface" width="100%" style="display: block;" />
+                        </a>
+                   
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding: 0 32px 24px 32px;" class="content-padding">
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        
+                        <tr>
+                            <td width="56" valign="top" style="padding-bottom: 20px;">
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                            </td>
+                            <td style="padding-bottom: 20px; padding-left: 12px;" valign="top">
+                                <h3 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 700;">Real-Time Financial Tracking</h3>
+                                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5;">Automated Trading & Profit & Loss accounts give you instant visibility over gross margin and operational revenue.</p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="56" valign="top" style="padding-bottom: 20px;">
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                            </td>
+                            <td style="padding-bottom: 20px; padding-left: 12px;" valign="top">
+                                <h3 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 700;">Forensic Audit Guardrails</h3>
+                                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5;">Prevent inventory leaks. Smart guardrails flag mismatches between opening and closing stock before they cost you.</p>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="56" valign="top">
+                                <div class="icon-badge">
+                                    <i class="fa-solid fa-fire"></i>
+                                </div>
+                            </td>
+                            <td style="padding-left: 12px;" valign="top">
+                                <h3 style="margin: 0; color: #0f172a; font-size: 15px; font-weight: 700;">Bookkeeping Consistency</h3>
+                                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px; line-height: 1.5;">Maintain your daily ledger streak to ensure every transaction is verified, synced, and audit-ready.</p>
+                            </td>
+                        </tr>
+
+                    </table>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding: 10px 32px 32px 32px; text-align: center;" class="content-padding">
+                    <a href="https://avanti-co.github.io/Avanti_ledger/loading.html" target="_blank" class="cta-button">
+                        Access Your Dashboard <i class="fa-solid fa-arrow-right" style="margin-left: 8px; font-size: 13px;"></i>
+                    </a>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="padding: 0 32px 32px 32px;" class="content-padding">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <tr>
+                            <td style="padding: 20px;">
+                                <table width="100%" cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td width="36" valign="top">
+                                            <i class="fa-solid fa-users" style="color: #3f72af; font-size: 18px; margin-top: 2px;"></i>
+                                        </td>
+                                        <td style="padding-left: 8px;">
+                                            <h4 style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #0f172a;">Empower Other Business Owners</h4>
+                                            <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.4;">Efficiency is better together. If you know a store owner looking to streamline their record-keeping, introduce them to the Avanti ecosystem.</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="background-color: #0f172a; color: #94a3b8; padding: 32px; text-align: center; font-size: 12px;" class="content-padding">
+                    
+                    <div style="margin-bottom: 12px;">
+                        <span style="color: #ffffff; font-weight: 800; font-size: 16px; letter-spacing: -0.2px;">Avanti<span style="color: #3f72af;">.ledger</span></span>
+                    </div>
+
+                    <p style="margin: 0 0 16px 0; line-height: 1.5; color: #64748b;">
+                        Precision accounting & inventory management for modern businesses.
+                    </p>
+
+                    <p style="margin: 0; color: #475569;">
+                        © 2026 Avanti Ecosystem. All rights reserved. <br>
+                        <a href="#" style="color: #3f72af; text-decoration: none; font-weight: 600;">Privacy Policy</a> &nbsp;•&nbsp; 
+                        <a href="#" style="color: #3f72af; text-decoration: none; font-weight: 600;">Support Center</a>
+                    </p>
+                </td>
+            </tr>
+
+        </table>
+    </center>
+    
+ <button id="doneBtn">Done</button>
 
   <script>
     document.querySelectorAll("img").forEach(img => {
